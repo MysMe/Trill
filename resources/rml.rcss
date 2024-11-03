@@ -1,0 +1,111 @@
+/*
+* Default styles for all the basic elements.
+*/
+
+div
+{
+	display: block;
+}
+
+p
+{
+	display: block;
+}
+
+h1
+{
+	display: block;
+}
+
+em
+{
+	font-style: italic;
+}
+
+strong
+{
+	font-weight: bold;
+}
+
+select
+{
+	text-align: left;
+}
+
+tabset tabs
+{
+	display: block;
+}
+
+table {
+	box-sizing: border-box;
+	display: table;
+}
+tr {
+	box-sizing: border-box;
+	display: table-row;
+}
+td {
+	box-sizing: border-box;
+	display: table-cell;
+}
+col {
+	box-sizing: border-box;
+	display: table-column;
+}
+colgroup {
+	display: table-column-group;
+}
+thead, tbody, tfoot {
+	display: table-row-group;
+}
+body
+{
+	font-family: LatoLatin;
+	font-weight: normal;
+	font-style: normal;
+	font-size: 15dp;
+	color: white;
+}
+card
+{
+	display: block;
+	background-color: white;
+	border-radius: 5px;
+	margin: 5px;
+	padding: 10px;
+	text-align: center;
+	
+	flex: 1 1 0px;
+	min-width: 80px;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+
+	overflow: hidden;
+}
+
+cardtitle
+{
+	display: block;
+}
+
+cardcontent
+{
+	display: block;
+	font-size: 3rem;
+}
+
+cardsubtext
+{
+	display: block;
+	font-size: 1rem;
+}
+
+cardunseentext
+{
+	border-radius: 5px;
+	padding: 5px;
+	display: block;
+	font-size: 1rem;
+}
