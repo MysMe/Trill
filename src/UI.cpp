@@ -12,6 +12,8 @@
 #include "Settings.h"
 #include <GLFW/glfw3.h>
 
+#include "Keybinds.h"
+
 namespace UI
 {
 	static settings::settings userSettings;
@@ -19,6 +21,7 @@ namespace UI
 	static bool windowDirty = false;
 	static bool forceFetch = false;
 	static bool refreshDocument = false;
+	static Rml::ElementDocument* helpDocument = nullptr;
 
     bool ProcessKeyDownShortcuts(Rml::Context *context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority)
     {
@@ -134,6 +137,22 @@ namespace UI
 			{
 				refreshDocument = true;
 			}
+            else if (key == Rml::Input::KI_F1)
+            {
+				if (!helpDocument)
+				{
+					helpDocument = context->LoadDocumentFromMemory(helpRml.data(), "help.rml");
+					if (helpDocument)
+					{
+						helpDocument->Show();
+					}
+				}
+				else
+				{
+					helpDocument->Close();
+					helpDocument = nullptr;
+				}
+            }
             else
             {
                 // Propagate the key down event to the context.
@@ -253,7 +272,7 @@ namespace UI
         ~atScopeExit() { fn(); }
     };
 
-    void renderToUI()
+    void renderToUI(bool allowClick)
     {
 		userSettings = settings::getSettings();
 
@@ -263,7 +282,7 @@ namespace UI
         appData data;
 		fetch(data, api, apiData);
 
-        auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true);
+        auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, allowClick);
 		atScopeExit backendCleanUp([&] { Backend::Shutdown(); });
 
         // Constructs the system and render interfaces, creates a window, and attaches the renderer.

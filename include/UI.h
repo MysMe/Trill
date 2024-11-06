@@ -2,5 +2,5 @@
 
 namespace UI
 {
-    void renderToUI();
+    void renderToUI(bool allowClick);
 }

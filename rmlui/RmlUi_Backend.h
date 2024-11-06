@@ -47,7 +47,7 @@ using KeyDownCallback = bool (*)(Rml::Context* context, Rml::Input::KeyIdentifie
 namespace Backend {
 
 // Initializes the backend, including the custom system and render interfaces, and opens a window for rendering the RmlUi context.
-void* Initialize(const char* window_name, int width, int height, bool allow_resize);
+void* Initialize(const char* window_name, int width, int height, bool allow_resize, bool allowClick);
 // Closes the window and release all resources owned by the backend, including the system and render interfaces.
 void Shutdown();
 

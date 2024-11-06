@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            UI::renderToUI();
+            UI::renderToUI(true);
         }
     }
     catch (const std::exception &e)
