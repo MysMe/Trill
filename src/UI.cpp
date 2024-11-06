@@ -235,6 +235,14 @@ namespace UI
 		data.syncLast = std::format("{:%F %T}", std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
     }
 
+    template <class Fn>
+    struct atScopeExit
+    {
+        Fn fn;
+        atScopeExit(Fn fn) : fn(fn) {}
+        ~atScopeExit() { fn(); }
+    };
+
     void renderToUI()
     {
 		userSettings = settings::getSettings();
@@ -246,6 +254,8 @@ namespace UI
 		fetch(data, api, apiData);
 
         auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true);
+		atScopeExit backendCleanUp([&] { Backend::Shutdown(); });
+
         // Constructs the system and render interfaces, creates a window, and attaches the renderer.
         if (!windowPtr)
         {
@@ -264,13 +274,12 @@ namespace UI
 
         // RmlUi initialisation.
         Rml::Initialise();
+		atScopeExit rmlCleanUp([] { Rml::Shutdown(); });
 
         // Create the main RmlUi context.
         Rml::Context *context = Rml::CreateContext("main", Rml::Vector2i(userSettings.window_width, userSettings.window_height));
         if (!context)
         {
-            Rml::Shutdown();
-            Backend::Shutdown();
             return;
         }
 
@@ -349,10 +358,5 @@ namespace UI
             context->Render();
             Backend::PresentFrame();
         }
-
-        // Shutdown RmlUi.
-        Rml::Shutdown();
-
-        Backend::Shutdown();
     }
 }

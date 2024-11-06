@@ -3,6 +3,8 @@
 #include <iostream>
 #include "Console.h"
 #include "UI.h"
+#include <fstream>
+#include <chrono>
 
 
 
@@ -26,10 +28,16 @@ int main(int argc, char *argv[])
     catch (const std::exception &e)
     {
         std::cerr << e.what() << std::endl;
+		//Write error to log file
+		std::ofstream logFile("error.log");
+		logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
     }
     catch (...)
     {
         std::cerr << "Unknown exception" << std::endl;
+		//Write error to log file
+		std::ofstream logFile("error.log");
+		logFile << std::chrono::system_clock::now() << "#\tUnknown exception." << std::endl;
     }
     return 0;
 }
