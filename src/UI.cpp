@@ -18,6 +18,7 @@ namespace UI
 	static bool settingsDirty = false;
 	static bool windowDirty = false;
 	static bool forceFetch = false;
+	static bool refreshDocument = false;
 
     bool ProcessKeyDownShortcuts(Rml::Context *context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority)
     {
@@ -128,6 +129,10 @@ namespace UI
 			else if (key == Rml::Input::KI_F5)
 			{
 				forceFetch = true;
+			}
+            else if (key == Rml::Input::KI_F9)
+			{
+				refreshDocument = true;
 			}
             else
             {
@@ -321,6 +326,17 @@ namespace UI
         {
             // Handle input and window events.
             running = Backend::ProcessEvents(context, &ProcessKeyDownShortcuts, true);
+
+			if (refreshDocument)
+			{
+                document->Close();
+				document = context->LoadDocument((resourcesDirectory / "layout.rml").string());
+				if (document)
+				{
+					document->Show();
+				}
+				refreshDocument = false;
+			}
 
 			if (forceFetch)
 			{
