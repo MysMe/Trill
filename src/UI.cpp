@@ -17,6 +17,7 @@ namespace UI
 	static settings::settings userSettings;
 	static bool settingsDirty = false;
 	static bool windowDirty = false;
+	static bool forceFetch = false;
 
     bool ProcessKeyDownShortcuts(Rml::Context *context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority)
     {
@@ -124,6 +125,10 @@ namespace UI
 				userSettings.transparent = !userSettings.transparent;
 				settingsDirty = true;
             }
+			else if (key == Rml::Input::KI_F5)
+			{
+				forceFetch = true;
+			}
             else
             {
                 // Propagate the key down event to the context.
@@ -316,6 +321,13 @@ namespace UI
         {
             // Handle input and window events.
             running = Backend::ProcessEvents(context, &ProcessKeyDownShortcuts, true);
+
+			if (forceFetch)
+			{
+				fetch(data, api, apiData);
+				dataModel.DirtyAllVariables();
+				forceFetch = false;
+			}
 
             if (windowDirty)
             {
