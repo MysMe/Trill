@@ -187,11 +187,11 @@ void Backend::RequestExit()
 	glfwSetWindowShouldClose(data->window, GLFW_TRUE);
 }
 
-void Backend::BeginFrame()
+void Backend::BeginFrame(float alpha)
 {
 	RMLUI_ASSERT(data);
-	data->render_interface.BeginFrame();
-	data->render_interface.Clear();
+	data->render_interface.BeginFrame(alpha);
+	data->render_interface.Clear(alpha);
 }
 
 void Backend::PresentFrame()

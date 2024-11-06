@@ -119,6 +119,11 @@ namespace UI
 				userSettings.opacity = Rml::Math::Max(userSettings.opacity - 0.1f, 0.1f);
 				windowDirty = true;
 			}
+            else if (key == Rml::Input::KI_TAB)
+            {
+				userSettings.transparent = !userSettings.transparent;
+				settingsDirty = true;
+            }
             else
             {
                 // Propagate the key down event to the context.
@@ -340,7 +345,7 @@ namespace UI
             context->Update();
 
             // Prepare the backend for taking rendering commands from RmlUi and then render the context.
-            Backend::BeginFrame();
+            Backend::BeginFrame(userSettings.transparent ? 0.f : 1.f);
             context->Render();
             Backend::PresentFrame();
         }

@@ -335,13 +335,13 @@ void RenderInterface_GL3::SetViewport(int width, int height)
 	viewport_height = height;
 }
 
-void RenderInterface_GL3::BeginFrame()
+void RenderInterface_GL3::BeginFrame(float alpha)
 {
 	RMLUI_ASSERT(viewport_width >= 0 && viewport_height >= 0);
 	glViewport(0, 0, viewport_width, viewport_height);
 
 	glClearStencil(0);
-	glClearColor(0, 0, 0, 0);
+	glClearColor(0, 0, 0, alpha);
 
 	glDisable(GL_CULL_FACE);
 
@@ -360,10 +360,10 @@ void RenderInterface_GL3::BeginFrame()
 
 void RenderInterface_GL3::EndFrame() {}
 
-void RenderInterface_GL3::Clear()
+void RenderInterface_GL3::Clear(float alpha)
 {
 	glClearStencil(0);
-	glClearColor(0, 0, 0, 0);
+	glClearColor(0, 0, 0, alpha);
 	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 

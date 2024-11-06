@@ -9,12 +9,13 @@ namespace settings
 {
 	struct settings
 	{
+		float dp_ratio = 1.0f;
+		float opacity = 1.0f;
 		int32_t window_x = 0;
 		int32_t window_y = 0;
 		int16_t window_width = 800;
 		int16_t window_height = 600;
-		float dp_ratio = 1.0f;
-		float opacity = 1.0f;
+		bool transparent = true;
 
 		bool operator==(const settings&) const = default;
 
