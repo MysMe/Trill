@@ -37,7 +37,6 @@ namespace UI
 			bool altDown = key_modifier & Rml::Input::KM_ALT;
 			int16_t motion = ctrlDown ? 1 : 10;
 
-            // Toggle debugger and set dp-ratio using Ctrl +/-/0 keys.
             if (key == Rml::Input::KI_F8)
             {
                 Rml::Debugger::SetVisible(!Rml::Debugger::IsVisible());
@@ -67,6 +66,11 @@ namespace UI
                 context->SetDensityIndependentPixelRatio(new_dp_ratio);
 				userSettings.dp_ratio = new_dp_ratio;
 				settingsDirty = true;
+            }
+            else if (key == Rml::Input::KI_R && ctrlDown)
+            {
+                userSettings = {};
+				windowDirty = true;
             }
 			else if (key == Rml::Input::KI_UP)
 			{
