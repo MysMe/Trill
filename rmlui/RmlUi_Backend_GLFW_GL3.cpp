@@ -75,9 +75,14 @@ void* Backend::Initialize(const char* name, int width, int height, bool allow_re
 	glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
 	//MysMe Customisations ;)
+	//Always on top
 	glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+	//No title bar
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	//Transparent background (aka render as an overlay)
 	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+	//No mouse input (so they can click through the window)
+	glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, GLFW_TRUE);
 
 	// Request stencil buffer of at least 8-bit size to supporting clipping on transformed elements.
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
