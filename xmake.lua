@@ -14,5 +14,9 @@ target("Trill")
     add_files("src/*.cpp", "rmlui/*.cpp")
     add_packages("curlpp", "nlohmann_json", "osmanip", "glfw", "rmlui", "glad")
     set_warnings("allextra", "error")
-    add_defines("PROJECT_DIR=\"$(projectdir)\"")
+    if is_mode("debug") then
+        add_defines("PROJECT_DIR=\"$(projectdir)\"")
+    else
+        add_defines("PROJECT_DIR=\"\"")
+    end
     
