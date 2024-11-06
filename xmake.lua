@@ -18,5 +18,8 @@ target("Trill")
         add_defines("PROJECT_DIR=\"$(projectdir)\"")
     else
         add_defines("PROJECT_DIR=\"\"")
+        if is_plat("windows") then
+            add_ldflags("-subsystem:windows")
+        end
     end
     

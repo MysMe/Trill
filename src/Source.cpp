@@ -41,3 +41,11 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
+
+#ifdef _WIN32
+#include <Windows.h>
+int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+{
+	return main(__argc, __argv);
+}
+#endif
