@@ -2,6 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include "ProjectDir.h"
+#include <cstring>
 
 namespace settings
 {

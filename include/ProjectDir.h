@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include <filesystem>
+#include <algorithm>
 
 #define STRING(s) #s
 #define STRINGSTRING(s) STRING(s)

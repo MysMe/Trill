@@ -13,6 +13,7 @@
 #include <GLFW/glfw3.h>
 
 #include "Keybinds.h"
+#include <format>
 
 namespace UI
 {
@@ -240,28 +241,37 @@ namespace UI
 		const auto issues = issues::getCurrentIssues(api, apiData);
 		const auto resolutions = resolutions::getTicketsResolvedToday(api, apiData);
 
+        auto timeToString = [](const std::chrono::system_clock::time_point& time) -> std::string
+        {
+            auto time_t = std::chrono::system_clock::to_time_t(time);
+            std::tm tm = *std::localtime(&time_t);
+            std::string result(20, '\0');
+            std::strftime(result.data(), result.size(), "%F %T", &tm);
+            return result;
+        };
+
 		const auto& hotfix = issues.getOr(fields::priority::hotfix, {});
 		data.hotfixes = hotfix.count;
 		data.hotfixesUnseen = hotfix.unseen;
-		data.hotfixesLast = std::format("{:%F %T}", std::chrono::floor<std::chrono::seconds>(hotfix.lastUpdate));
+        data.hotfixesLast = timeToString(hotfix.lastUpdate);
 
 		const auto& medium = issues.getOr(fields::priority::regular, {});
 		data.medium = medium.count;
 		data.mediumUnseen = medium.unseen;
-		data.mediumLast = std::format("{:%F %T}", std::chrono::floor<std::chrono::seconds>(medium.lastUpdate));
+        data.mediumLast = timeToString(medium.lastUpdate);
 
 		const auto& low = issues.getOr(fields::priority::low, {});
 		data.low = low.count;
 		data.lowUnseen = low.unseen;
-		data.lowLast = std::format("{:%F %T}", std::chrono::floor<std::chrono::seconds>(low.lastUpdate));
+        data.lowLast = timeToString(low.lastUpdate);
 
 		const auto& veryLow = issues.getOr(fields::priority::veryLow, {});
 		data.veryLow = veryLow.count;
 		data.veryLowUnseen = veryLow.unseen;
-		data.veryLowLast = std::format("{:%F %T}", std::chrono::floor<std::chrono::seconds>(veryLow.lastUpdate));
+        data.veryLowLast = timeToString(veryLow.lastUpdate);
 
 		data.resolved = resolutions;
-		data.syncLast = std::format("{:%F %T}", std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+        data.syncLast = timeToString(std::chrono::system_clock::now());
     }
 
     template <class Fn>
