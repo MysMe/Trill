@@ -23,6 +23,7 @@ namespace UI
 	static bool forceFetch = false;
 	static bool refreshDocument = false;
 	static Rml::ElementDocument* helpDocument = nullptr;
+    static Rml::ElementDocument* contentDocument = nullptr;
 
     bool ProcessKeyDownShortcuts(Rml::Context *context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority)
     {
@@ -145,6 +146,7 @@ namespace UI
 					helpDocument = context->LoadDocumentFromMemory(helpRml.data(), "help.rml");
 					if (helpDocument)
 					{
+                        contentDocument->Hide();
 						helpDocument->Show();
 					}
 				}
@@ -152,6 +154,7 @@ namespace UI
 				{
 					helpDocument->Close();
 					helpDocument = nullptr;
+                    contentDocument->Show();
 				}
             }
             else
@@ -340,10 +343,10 @@ namespace UI
 		Rml::DataModelHandle dataModel;
 		setupDataBinding(context, dataModel, data);
 
-		Rml::ElementDocument* document = context->LoadDocument((resourcesDirectory / "layout.rml").string());
-		if (document)
+		contentDocument = context->LoadDocument((resourcesDirectory / "layout.rml").string());
+		if (contentDocument)
         {
-            document->Show();
+            contentDocument->Show();
         }
 
 		std::chrono::time_point<std::chrono::system_clock> lastFetch = std::chrono::system_clock::now();
@@ -358,11 +361,11 @@ namespace UI
 
 			if (refreshDocument)
 			{
-                document->Close();
-				document = context->LoadDocument((resourcesDirectory / "layout.rml").string());
-				if (document)
+                contentDocument->Close();
+				contentDocument = context->LoadDocument((resourcesDirectory / "layout.rml").string());
+				if (contentDocument)
 				{
-					document->Show();
+					contentDocument->Show();
 				}
 				refreshDocument = false;
 			}
