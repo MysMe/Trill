@@ -5,7 +5,8 @@
 
 namespace fields
 {
-
+	//As defined in the Trello board
+	//Note that the order of the strings must match the order of the enum
 	constexpr std::string_view priorityStrings[] = { "Hotfix", "Regular", "Low", "Very Low" };
 	constexpr std::string_view seenStrings[] = { "Not Seen", "Seen", "In Progress", "On Hold", "Actioned", "Deferred" };
 
@@ -25,6 +26,7 @@ namespace fields
 				{
 					auto id = option["id"].get<std::string>();
 					auto name = option["value"]["text"].get<std::string>();
+					//Relies on the order of the strings and the enum to match
 					auto idx = std::find(std::begin(priorityStrings), std::end(priorityStrings), name);
 					if (idx != std::end(priorityStrings))
 					{
@@ -45,6 +47,7 @@ namespace fields
 				{
 					auto id = option["id"].get<std::string>();
 					auto name = option["value"]["text"].get<std::string>();
+					//Relies on the order of the strings and the enum to match
 					auto idx = std::find(std::begin(seenStrings), std::end(seenStrings), name);
 					if (idx != std::end(seenStrings))
 					{

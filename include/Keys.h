@@ -9,12 +9,11 @@ struct keys
     std::string apiKey;
     std::string userToken;
 
+	//Keys should be stored locally relative to the executable, we do not store the keys in the repository
     static keys loadKeys(const std::string& path)
     {
         keys result;
-        //Open the "api_key.txt" file
         std::ifstream api_key(path + "api_key.txt");
-        //Read the entire contents of the file into a string
         if (!api_key)
         {
             throw std::runtime_error("Error opening file: " + path + "api_key.txt");

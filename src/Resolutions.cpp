@@ -29,7 +29,7 @@ namespace resolutions
                     continue;
                 }
                 auto resolvedAt = resolvedAtDate.get<std::string>();
-                // Check if the card was resolved today, regardless of the time
+                //Check if the card was resolved today, regardless of the time
                 //(CBA to deal with timezones, don't resolve things at midnight)
                 if (resolvedAt.starts_with(today))
                 {

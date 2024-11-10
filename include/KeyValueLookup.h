@@ -3,6 +3,7 @@
 #include <optional>
 #include <memory>
 
+//Simple flat key-value lookup
 template <class Key, class Value>
 class keyValueLookup
 {

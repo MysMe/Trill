@@ -3,6 +3,7 @@
 
 namespace UI
 {
+	//Simple text-driven help screen with some basic formatting
 	static constexpr std::string_view helpRml =
 		R"(
 <rml>

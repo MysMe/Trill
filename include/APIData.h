@@ -5,6 +5,7 @@
 
 namespace api
 {
+	//General keys for all API requests
     struct data
     {
         std::string boardId;

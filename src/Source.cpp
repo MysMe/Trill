@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 
 #ifdef _WIN32
 #include <Windows.h>
+//Windows requires a WinMain entry point, we want this when we don't want a console window
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	return main(__argc, __argv);

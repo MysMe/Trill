@@ -8,20 +8,25 @@ namespace settings
 {
 	settings settings::fromBytes(std::span<std::byte> bytes)
 	{
+		static_assert(std::is_trivially_copyable_v<settings>, "Settings must be trivially copyable for memcpy.");
 		settings s;
 		if (bytes.size() != sizeof(settings))
 		{
+			//If the settings vary (e.g. new settings added), return a default settings object - ignore any existing settings
 			return s;
 		}
 		std::memcpy(&s, bytes.data(), sizeof(settings));
 		return s;
 	}
+
 	std::vector<std::byte> settings::toBytes() const
 	{
+		static_assert(std::is_trivially_copyable_v<settings>, "Settings must be trivially copyable for memcpy.");
 		std::vector<std::byte> bytes(sizeof(settings));
 		std::memcpy(bytes.data(), this, sizeof(settings));
 		return bytes;
 	}
+
 	settings getSettings()
 	{
 		settings s;
@@ -31,10 +36,13 @@ namespace settings
 			std::ifstream file(settingsPath, std::ios::binary);
 			if (file.is_open())
 			{
+				//Determine file size
 				file.seekg(0, std::ios::end);
 				auto size = file.tellg();
+				//Read entire file into memory
 				file.seekg(0, std::ios::beg);
 				std::vector<std::byte> bytes(size);
+				//Reinterpret cast to char* is well defined
 				file.read(reinterpret_cast<char*>(bytes.data()), size);
 				s = settings::fromBytes(bytes);
 			}

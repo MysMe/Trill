@@ -14,16 +14,40 @@
 
 #include "Keybinds.h"
 #include <format>
+#include "UIModel.h"
 
 namespace UI
 {
 	static settings::settings userSettings;
-	static bool settingsDirty = false;
-	static bool windowDirty = false;
-	static bool forceFetch = false;
-	static bool refreshDocument = false;
 	static Rml::ElementDocument* helpDocument = nullptr;
     static Rml::ElementDocument* contentDocument = nullptr;
+
+    //Struct that can be easily read and reset as a single operation
+    struct flag
+    {
+        bool value = false;
+        void set() { value  = true; }
+        operator bool()
+        {
+            bool current = value;
+			value = false;
+			return current;
+        }
+    };
+
+    struct
+    {
+        //Indicates the settings should be updated
+        flag settingsDirty;
+		//Indicates the window should be updated
+        flag windowDirty;
+		//Indicates the data should be fetched
+        flag forceFetch;
+		//Indicates the document should be refreshed
+        flag refreshDocument;
+    } 
+    //Stores UI callback events that can be handled from the main code
+    eventResults;
 
     bool ProcessKeyDownShortcuts(Rml::Context *context, Rml::Input::KeyIdentifier key, int key_modifier, float native_dp_ratio, bool priority)
     {
@@ -52,32 +76,32 @@ namespace UI
             {
                 context->SetDensityIndependentPixelRatio(native_dp_ratio);
 				userSettings.dp_ratio = native_dp_ratio;
-				settingsDirty = true;
+				eventResults.settingsDirty.set();
             }
             else if (key == Rml::Input::KI_1 && ctrlDown)
             {
                 context->SetDensityIndependentPixelRatio(1.f);
 				userSettings.dp_ratio = 1.f;
-                settingsDirty = true;
+                eventResults.settingsDirty.set();
             }
             else if ((key == Rml::Input::KI_2 || key == Rml::Input::KI_SUBTRACT) && ctrlDown)
             {
                 const float new_dp_ratio = Rml::Math::Max(context->GetDensityIndependentPixelRatio() / 1.2f, 0.5f);
                 context->SetDensityIndependentPixelRatio(new_dp_ratio);
 				userSettings.dp_ratio = new_dp_ratio;
-				settingsDirty = true;
+                eventResults.settingsDirty.set();
             }
             else if ((key == Rml::Input::KI_3 || key == Rml::Input::KI_ADD) && ctrlDown)
             {
                 const float new_dp_ratio = Rml::Math::Min(context->GetDensityIndependentPixelRatio() * 1.2f, 2.5f);
                 context->SetDensityIndependentPixelRatio(new_dp_ratio);
 				userSettings.dp_ratio = new_dp_ratio;
-				settingsDirty = true;
+                eventResults.settingsDirty.set();
             }
             else if (key == Rml::Input::KI_R && ctrlDown)
             {
                 userSettings = {};
-				windowDirty = true;
+                eventResults.windowDirty.set();
             }
 			else if (key == Rml::Input::KI_UP)
 			{
@@ -85,7 +109,7 @@ namespace UI
 					userSettings.window_height -= motion;
                 else
 					userSettings.window_y -= motion;
-                windowDirty = true;
+                eventResults.windowDirty.set();
 			}
 			else if (key == Rml::Input::KI_DOWN)
 			{
@@ -93,7 +117,7 @@ namespace UI
 					userSettings.window_height += motion;
 				else
 					userSettings.window_y += motion;
-                windowDirty = true;
+                eventResults.windowDirty.set();
 			}
 			else if (key == Rml::Input::KI_LEFT)
 			{
@@ -101,7 +125,7 @@ namespace UI
 					userSettings.window_width -= motion;
 				else
 					userSettings.window_x -= motion;
-                windowDirty = true;
+                eventResults.windowDirty.set();
 			}
 			else if (key == Rml::Input::KI_RIGHT)
 			{
@@ -109,35 +133,35 @@ namespace UI
 					userSettings.window_width += motion;
 				else
 					userSettings.window_x += motion;
-                windowDirty = true;
+                eventResults.windowDirty.set();
 			}
 			else if (key == Rml::Input::KI_0 && ctrlDown && altDown)
 			{
 				userSettings.opacity = 1.0f;
-				windowDirty = true;
+                eventResults.windowDirty.set();
 			}
 			else if (key == Rml::Input::KI_O && ctrlDown)
 			{
 				userSettings.opacity = Rml::Math::Min(userSettings.opacity + 0.1f, 1.0f);
-				windowDirty = true;
+                eventResults.windowDirty.set();
 			}
 			else if (key == Rml::Input::KI_O && altDown)
 			{
 				userSettings.opacity = Rml::Math::Max(userSettings.opacity - 0.1f, 0.1f);
-				windowDirty = true;
+                eventResults.windowDirty.set();
 			}
             else if (key == Rml::Input::KI_TAB)
             {
 				userSettings.transparent = !userSettings.transparent;
-				settingsDirty = true;
+                eventResults.settingsDirty.set();
             }
 			else if (key == Rml::Input::KI_F5)
 			{
-				forceFetch = true;
+                eventResults.forceFetch.set();
 			}
             else if (key == Rml::Input::KI_F9)
 			{
-				refreshDocument = true;
+                eventResults.refreshDocument.set();
 			}
             else if (key == Rml::Input::KI_F1)
             {
@@ -187,96 +211,14 @@ namespace UI
         return result;
     }
 
-    struct appData
-    {
-        size_t hotfixes = 3;
-        size_t hotfixesUnseen = 0;
-        std::string hotfixesLast;
-
-        size_t medium = 4;
-		size_t mediumUnseen = 0;
-		std::string mediumLast;
-
-        size_t low = 2;
-		size_t lowUnseen = 0;
-		std::string lowLast;
-
-        size_t veryLow = 3;
-		size_t veryLowUnseen = 0;
-		std::string veryLowLast;
-
-        size_t resolved = 1;
-        std::string syncLast;
-    };
-
-    bool setupDataBinding(Rml::Context* context, Rml::DataModelHandle& model, appData& source)
-    {
-        Rml::DataModelConstructor constructor = context->CreateDataModel("model");
-        if (!constructor)
-            return false;
-
-		constructor.Bind("hotfixes", &source.hotfixes);
-        constructor.Bind("hotfixesUnseen", &source.hotfixesUnseen);
-		constructor.Bind("hotfixesLast", &source.hotfixesLast);
-
-		constructor.Bind("medium", &source.medium);
-		constructor.Bind("mediumUnseen", &source.mediumUnseen);
-		constructor.Bind("mediumLast", &source.mediumLast);
-
-		constructor.Bind("low", &source.low);
-		constructor.Bind("lowUnseen", &source.lowUnseen);
-		constructor.Bind("lowLast", &source.lowLast);
-
-		constructor.Bind("veryLow", &source.veryLow);
-		constructor.Bind("veryLowUnseen", &source.veryLowUnseen);
-		constructor.Bind("veryLowLast", &source.veryLowLast);
-
-		constructor.Bind("resolved", &source.resolved);
-        constructor.Bind("syncLast", &source.syncLast);
-
-        model = constructor.GetModelHandle();
-
-        return true;
-    }
-
-	void fetch(appData& data, const requestHandler& api, const api::data& apiData)
+	void fetch(model& data, const requestHandler& api, const api::data& apiData)
     {
 		const auto issues = issues::getCurrentIssues(api, apiData);
 		const auto resolutions = resolutions::getTicketsResolvedToday(api, apiData);
-
-        auto timeToString = [](const std::chrono::system_clock::time_point& time) -> std::string
-        {
-            auto time_t = std::chrono::system_clock::to_time_t(time);
-            std::tm tm = *std::localtime(&time_t);
-            std::string result(20, '\0');
-            std::strftime(result.data(), result.size(), "%F %T", &tm);
-            return result;
-        };
-
-		const auto& hotfix = issues.getOr(fields::priority::hotfix, {});
-		data.hotfixes = hotfix.count;
-		data.hotfixesUnseen = hotfix.unseen;
-        data.hotfixesLast = timeToString(hotfix.lastUpdate);
-
-		const auto& medium = issues.getOr(fields::priority::regular, {});
-		data.medium = medium.count;
-		data.mediumUnseen = medium.unseen;
-        data.mediumLast = timeToString(medium.lastUpdate);
-
-		const auto& low = issues.getOr(fields::priority::low, {});
-		data.low = low.count;
-		data.lowUnseen = low.unseen;
-        data.lowLast = timeToString(low.lastUpdate);
-
-		const auto& veryLow = issues.getOr(fields::priority::veryLow, {});
-		data.veryLow = veryLow.count;
-		data.veryLowUnseen = veryLow.unseen;
-        data.veryLowLast = timeToString(veryLow.lastUpdate);
-
-		data.resolved = resolutions;
-        data.syncLast = timeToString(std::chrono::system_clock::now());
+		data.set(issues, resolutions);
     }
 
+	//Use this to ensure the function is called when the scope is exited
     template <class Fn>
     struct atScopeExit
     {
@@ -292,7 +234,8 @@ namespace UI
         const auto api = requestHandler(keys::loadKeys(constants::project_path / "keys/"));
         const auto apiData = api::getApiData(api);
 
-        appData data;
+        model data;
+		//Initial fetch
 		fetch(data, api, apiData);
 
         auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, allowClick);
@@ -325,7 +268,6 @@ namespace UI
             return;
         }
 
-
         // The RmlUi debugger is optional but very useful. Try it by pressing 'F8' after starting this sample.
         Rml::Debugger::Initialise(context);
 
@@ -341,7 +283,7 @@ namespace UI
         }
 
 		Rml::DataModelHandle dataModel;
-		setupDataBinding(context, dataModel, data);
+		data.bind(context, dataModel);
 
 		contentDocument = context->LoadDocument((resourcesDirectory / "layout.rml").string());
 		if (contentDocument)
@@ -356,37 +298,33 @@ namespace UI
         bool running = true;
         while (running)
         {
-            // Handle input and window events.
+            //Handle input and window events.
             running = Backend::ProcessEvents(context, &ProcessKeyDownShortcuts, true);
 
-			if (refreshDocument)
+			//If we need to refresh the document, do so now
+			if (eventResults.refreshDocument)
 			{
+				//Unload and reload the document
                 contentDocument->Close();
 				contentDocument = context->LoadDocument((resourcesDirectory / "layout.rml").string());
 				if (contentDocument)
 				{
 					contentDocument->Show();
 				}
-				refreshDocument = false;
 			}
 
-			if (forceFetch)
-			{
-				fetch(data, api, apiData);
-				dataModel.DirtyAllVariables();
-				forceFetch = false;
-			}
-
-            if (windowDirty)
+			//If the window is dirty, update the window
+            if (eventResults.windowDirty)
             {
                 glfwSetWindowPos(window, userSettings.window_x, userSettings.window_y);
 				glfwSetWindowSize(window, userSettings.window_width, userSettings.window_height);
 				context->SetDimensions(Rml::Vector2i(userSettings.window_width, userSettings.window_height));
 				glfwSetWindowOpacity(window, userSettings.opacity);
-				windowDirty = false;
-                settingsDirty = true;
+				//Indicate that the settings are dirty, changing the window may have changed the window settings
+                eventResults.settingsDirty.set();
             }
 
+            //Determine what the new window settings would be
 			settings::settings newSettings = userSettings;
             int x, y;
 			glfwGetWindowPos(window, &x, &y);
@@ -396,14 +334,15 @@ namespace UI
 			newSettings.window_width = static_cast<decltype(newSettings.window_width)>(x);
 			newSettings.window_height = static_cast<decltype(newSettings.window_height)>(y);
 
-            if (newSettings != userSettings || settingsDirty)
+			//If the settings are dirty or have changed, save them
+            if (newSettings != userSettings || eventResults.settingsDirty)
             {
 				settings::saveSettings(newSettings);
 				userSettings = newSettings;
-                settingsDirty = false;
             }
 
-            if (std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(60))
+			//If we haven't fetched in the last minute, fetch now
+            if (eventResults.forceFetch || std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(60))
             {
 				fetch(data, api, apiData);
 				dataModel.DirtyAllVariables();

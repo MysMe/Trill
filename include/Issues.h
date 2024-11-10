@@ -12,11 +12,12 @@ namespace api
 
 namespace issues
 {
+	//Summary of issues for a single priority
     struct issueSummary
     {
         size_t count;
         size_t unseen;
-        std::chrono::system_clock::time_point lastUpdate = std::chrono::system_clock::time_point::min();
+        std::optional<std::chrono::system_clock::time_point> lastUpdate;
     };
 
     keyValueLookup<fields::priority, issueSummary> getCurrentIssues(const requestHandler &api, const api::data &data);

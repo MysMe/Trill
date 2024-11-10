@@ -6,6 +6,7 @@
 namespace fields
 {
 
+	//As taken from Trello
 	enum class priority
 	{
 		hotfix,
@@ -14,6 +15,7 @@ namespace fields
 		veryLow
 	};
 
+	//As taken from Trello
 	enum class seenState
 	{
 		notSeen,
@@ -24,30 +26,33 @@ namespace fields
 		deferred
 	};
 
+	//Field and key identifiers for the Priority field
 	struct priorityKeys
 	{
 		std::string fieldId;
 		keyValueLookup<std::string, priority> keys;
 	};
 
+	//Field identifier for the Resolution field
 	struct resolutionKeys
 	{
 		std::string fieldId;
 	};
 
+	//Field and key identifiers for the Seen State field
 	struct seenKeys
 	{
 		std::string fieldId;
 		keyValueLookup<seenState, std::string> keys;
 	};
 
+	//Combined key storage
 	struct customFields
 	{
 		priorityKeys pKeys;
 		resolutionKeys rKeys;
 		seenKeys sKeys;
 	};
-
 
 	customFields getCustomFields(const requestHandler& api, std::string_view boardId);
 }

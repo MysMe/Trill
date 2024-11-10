@@ -46,7 +46,7 @@ namespace issues
 				auto lastActivityJson = card["dateLastActivity"];
 				if (!lastActivityJson.is_null())
 				{
-					// parse from string to timepoint
+					//Parse from string to timepoint
 					std::tm tm = {};
 					std::istringstream ss(lastActivityJson.get<std::string>());
 					if (ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S"))
