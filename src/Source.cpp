@@ -5,11 +5,14 @@
 #include "UI.h"
 #include <fstream>
 #include <chrono>
-
-
+#include <curlpp/Options.hpp>
+#include <array>
+#include <ranges>
 
 int main(int argc, char *argv[])
 {
+    std::array<std::chrono::steady_clock::time_point, 5> lastFetchExceptions{};
+reset:
     try
     {
         constexpr std::string_view probeArgs[] = {"probe", "p", "--p", "--probe", "-p", "-probe"};
@@ -25,7 +28,27 @@ int main(int argc, char *argv[])
             UI::renderToUI(true);
         }
     }
-    catch (const std::exception &e)
+	catch (const curlpp::RuntimeError& e)
+	{
+		auto last = std::min_element(lastFetchExceptions.begin(), lastFetchExceptions.end());
+		*last = std::chrono::steady_clock::now();
+
+		auto oneMinuteAgo = std::chrono::steady_clock::now() - std::chrono::minutes(1);
+		//If all the exceptions are within the last minute, print the error and terminate
+        if (std::ranges::all_of(lastFetchExceptions, [oneMinuteAgo](const auto& time) { return time >= oneMinuteAgo; }))
+        {
+            std::cerr << e.what() << std::endl;
+            //Write error to log file
+            std::ofstream logFile("error.log");
+            logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
+        }
+        else
+        {
+            //Otherwise retry
+			goto reset;
+        }
+	}
+    catch (const std::exception& e)
     {
         std::cerr << e.what() << std::endl;
 		//Write error to log file
