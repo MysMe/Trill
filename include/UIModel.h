@@ -34,7 +34,7 @@ namespace UI
 		model& operator=(model&&) = delete;
 		~model() = default;
 
-		void set(const keyValueLookup<fields::priority, issues::issueSummary>& issues, size_t resolved)
+		void set(const keyValueLookup<fields::priority, issues::issueSummary>& issues, size_t resolvedCount)
 		{
 			auto timeToString = [](const std::optional<std::chrono::system_clock::time_point>& time) -> std::string
 				{
@@ -67,7 +67,7 @@ namespace UI
 			veryLowUnseen = veryLowSummary.unseen;
 			veryLowLast = timeToString(veryLowSummary.lastUpdate);
 
-			resolved = resolved;
+			resolved = resolvedCount;
 			syncLast = timeToString(std::chrono::system_clock::now());
 		}
 
