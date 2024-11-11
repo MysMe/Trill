@@ -19,13 +19,16 @@ reset:
         bool probe = std::any_of(argv, argv + argc, [&probeArgs](const char *arg)
                                  { return std::ranges::find(probeArgs, arg) != std::end(probeArgs); });
 
+        constexpr std::string_view clickArgs[] = {"click", "c", "--c", "--click", "-c", "-click"};
+        bool canClick = std::any_of(argv, argv + argc, [&clickArgs](const char *arg)
+                                { return std::ranges::find(clickArgs, arg) != std::end(clickArgs); });
         if (probe)
         {
             console::renderToConsole();
         }
         else
         {
-            UI::renderToUI(true);
+            UI::renderToUI(canClick);
         }
     }
 	catch (const curlpp::RuntimeError& e)
