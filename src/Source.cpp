@@ -8,10 +8,10 @@
 #include <curlpp/Options.hpp>
 #include <array>
 #include <ranges>
+#include <thread>
 
 int main(int argc, char *argv[])
 {
-    std::array<std::chrono::steady_clock::time_point, 5> lastFetchExceptions{};
 reset:
     try
     {
@@ -31,30 +31,20 @@ reset:
             UI::renderToUI(canClick);
         }
     }
-	catch (const curlpp::RuntimeError& e)
-	{
-		auto last = std::min_element(lastFetchExceptions.begin(), lastFetchExceptions.end());
-		*last = std::chrono::steady_clock::now();
-
-		auto oneMinuteAgo = std::chrono::steady_clock::now() - std::chrono::minutes(1);
-		//If all the exceptions are within the last minute, print the error and terminate
-        if (std::ranges::all_of(lastFetchExceptions, [oneMinuteAgo](const auto& time) { return time >= oneMinuteAgo; }))
-        {
-            std::cerr << e.what() << std::endl;
-            //Write error to log file
-            std::ofstream logFile("error.log");
-            logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
-        }
-        else
-        {
-            //Otherwise retry
-			goto reset;
-        }
-	}
-    catch (const std::exception& e)
+    catch (const curlpp::RuntimeError &e)
     {
         std::cerr << e.what() << std::endl;
-		//Write error to log file
+        // Write error to log file
+        std::ofstream logFile("error.log", std::ios::app);
+        logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
+        //Add a small delay to avoid spamming the network
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        goto reset;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        //Write error to log file
 		std::ofstream logFile("error.log");
 		logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
     }
