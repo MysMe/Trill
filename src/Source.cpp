@@ -15,6 +15,9 @@ int main(int argc, char *argv[])
 reset:
     try
     {
+        //Remove log file if one exists
+        std::remove("error.log");
+        
         constexpr std::string_view probeArgs[] = {"probe", "p", "--p", "--probe", "-p", "-probe"};
         bool probe = std::any_of(argv, argv + argc, [&probeArgs](const char *arg)
                                  { return std::ranges::find(probeArgs, arg) != std::end(probeArgs); });
