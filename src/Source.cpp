@@ -5,14 +5,30 @@
 #include "UI.h"
 #include <fstream>
 #include <chrono>
-#include <curlpp/Options.hpp>
 #include <array>
 #include <ranges>
 #include <thread>
 
+template <class T>
+void logError(const T& e)
+{
+    std::cerr << e.what() << std::endl;
+    // Write error to log file
+    std::ofstream logFile("error.log", std::ios::app);
+    logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
+    //Add a small delay to avoid spamming the network
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+}
+
 int main(int argc, char *argv[])
 {
+    bool firstRun = true;
 reset:
+    //When resetting, add a delay to avoid spamming the network
+    if (!firstRun)
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+    firstRun = false;
+
     try
     {
         //Remove log file if one exists
@@ -34,29 +50,15 @@ reset:
             UI::renderToUI(canClick);
         }
     }
-    catch (const curlpp::RuntimeError &e)
-    {
-        std::cerr << e.what() << std::endl;
-        // Write error to log file
-        std::ofstream logFile("error.log", std::ios::app);
-        logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
-        //Add a small delay to avoid spamming the network
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        goto reset;
-    }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
-        //Write error to log file
-		std::ofstream logFile("error.log");
-		logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
+        logError(e);
+        goto reset;
     }
     catch (...)
     {
-        std::cerr << "Unknown exception" << std::endl;
-		//Write error to log file
-		std::ofstream logFile("error.log");
-		logFile << std::chrono::system_clock::now() << "#\tUnknown exception." << std::endl;
+        logError(std::runtime_error("Unknown error"));
+        goto reset;
     }
     return 0;
 }
