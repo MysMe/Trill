@@ -8,6 +8,7 @@ struct keys
 {
     std::string apiKey;
     std::string userToken;
+    std::string troncboxKey;
 
 	//Keys should be stored locally relative to the executable, we do not store the keys in the repository
     static keys loadKeys(const std::string& path)
@@ -26,6 +27,14 @@ struct keys
             throw std::runtime_error("Error opening file: " + path + "user_token.txt");
         }
         std::getline(user_token, result.userToken);
+
+        std::ifstream troncbox_key(path + "troncbox_key.txt");
+        if (!troncbox_key)
+        {
+            throw std::runtime_error("Error opening file: " + path + "troncbox_key.txt");
+        }
+        std::getline(troncbox_key, result.troncboxKey);
+
         return result;
     }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include "Troncbox.h"
 #include <RmlUi/Core.h>
 
 namespace UI
@@ -26,6 +27,9 @@ namespace UI
 		size_t resolved = 0;
 		std::string syncLast;	
 
+		size_t missingTB = 0;
+		size_t missingPrimary = 0;
+
 		model() = default;
 		//The UI holds a reference to the model, so we need to make sure it's not copied or moved.
 		model(const model&) = delete;
@@ -34,7 +38,7 @@ namespace UI
 		model& operator=(model&&) = delete;
 		~model() = default;
 
-		void set(const keyValueLookup<fields::priority, issues::issueSummary>& issues, size_t resolvedCount)
+		void set(const keyValueLookup<fields::priority, issues::issueSummary>& issues, size_t resolvedCount, troncboxHandler::troncboxResponse troncbox)
 		{
 			auto timeToString = [](const std::optional<std::chrono::system_clock::time_point>& time) -> std::string
 				{
@@ -69,6 +73,9 @@ namespace UI
 
 			resolved = resolvedCount;
 			syncLast = timeToString(std::chrono::system_clock::now());
+
+			missingTB = troncbox.employeesWithoutEmployeeTB;
+			missingPrimary = troncbox.employeesWithoutPrimaryRole;
 		}
 
 		void bind(Rml::Context* context, Rml::DataModelHandle& model)
@@ -90,6 +97,8 @@ namespace UI
 			constructor.Bind("veryLowLast", &veryLowLast);
 			constructor.Bind("resolved", &resolved);
 			constructor.Bind("syncLast", &syncLast);
+			constructor.Bind("missingTB", &missingTB);
+			constructor.Bind("missingPrimary", &missingPrimary);
 			model = constructor.GetModelHandle();
 		}
 	};

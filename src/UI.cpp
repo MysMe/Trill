@@ -16,6 +16,8 @@
 #include <format>
 #include "UIModel.h"
 
+#include "Troncbox.h"
+
 namespace UI
 {
 	static settings::settings userSettings;
@@ -211,11 +213,12 @@ namespace UI
         return result;
     }
 
-	void fetch(model& data, const requestHandler& api, const api::data& apiData)
+	void fetch(model& data, const requestHandler& api, const api::data& apiData, const troncboxHandler& troncbox)
     {
 		const auto issues = issues::getCurrentIssues(api, apiData);
 		const auto resolutions = resolutions::getTicketsResolvedToday(api, apiData);
-		data.set(issues, resolutions);
+        const auto tbResult = troncbox.get();
+		data.set(issues, resolutions, tbResult);
     }
 
 	//Use this to ensure the function is called when the scope is exited
@@ -231,12 +234,14 @@ namespace UI
     {
 		userSettings = settings::getSettings();
 
-        const auto api = requestHandler(keys::loadKeys(constants::project_path / "keys/"));
+        const auto keys = keys::loadKeys(constants::project_path / "keys/");
+        const auto api = requestHandler(keys);
         const auto apiData = api::getApiData(api);
+        const auto troncbox = troncboxHandler(keys);
 
         model data;
 		//Initial fetch
-		fetch(data, api, apiData);
+		fetch(data, api, apiData, troncbox);
 
         auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, allowClick);
 		atScopeExit backendCleanUp([&] { Backend::Shutdown(); });
@@ -344,7 +349,7 @@ namespace UI
 			//If we haven't fetched in the last minute, fetch now
             if (eventResults.forceFetch || std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(60))
             {
-				fetch(data, api, apiData);
+				fetch(data, api, apiData, troncbox);
 				dataModel.DirtyAllVariables();
 				lastFetch = std::chrono::system_clock::now();
             }

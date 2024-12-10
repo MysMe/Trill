@@ -45,6 +45,7 @@
 					Most Recent<br/>{{hotfixesLast}}
 				</cardsubtext>
 			</card>
+
 			<card style="background-color: #FF8C00;">
 				<cardtitle>
 					Medium
@@ -59,6 +60,7 @@
 					Most Recent<br/>{{mediumLast}}
 				</cardsubtext>
 			</card>
+
 			<card style="background-color: #2626b0;">
 				<cardtitle>
 					Low
@@ -73,6 +75,7 @@
 					Most Recent<br/>{{lowLast}}
 				</cardsubtext>
 			</card>
+			
 			<card style="background-color: #00b2b2;">
 				<cardtitle>
 					Very Low
@@ -87,6 +90,7 @@
 					Most Recent<br/>{{veryLowLast}}
 				</cardsubtext>
 			</card>
+
 			<card style="background-color: #00a600;">
 				<cardtitle>
 					Resolved
@@ -100,5 +104,32 @@
 			</card>
 		</div>
 
+		<div style="display: flex; justify-content: space-between; width: 100%; flex-wrap:wrap;">
+			<card style="background-color: #5482a5;">
+				<cardtitle>
+					Missing Primary
+				</cardtitle>
+				<cardcontent>
+					{{missingPrimary}}
+				</cardcontent>
+			</card>
+
+			<!-- Use three empty cards to match the width -->
+			<card style="background-color: transparent;">
+			</card>
+			<card style="background-color: transparent;">
+			</card>
+			<card style="background-color: transparent;">
+			</card>
+
+			<card style="background-color: #5482a5;">
+				<cardtitle>
+					Missing Emp. TB
+				</cardtitle>
+				<cardcontent>
+					{{missingTB}}
+				</cardcontent>
+			</card>
+		</div>
 	</body>
 </rml>
