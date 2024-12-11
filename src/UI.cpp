@@ -18,6 +18,14 @@
 
 #include "Troncbox.h"
 
+#ifdef _WIN32
+#define NOMINMAX
+#define GLFW_EXPOSE_NATIVE_WIN32
+#undef APIENTRY
+#include <Windows.h>
+#include <GLFW/glfw3native.h>
+#endif
+
 namespace UI
 {
 	static settings::settings userSettings;
@@ -245,6 +253,16 @@ namespace UI
 
         auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, allowClick);
 		atScopeExit backendCleanUp([&] { Backend::Shutdown(); });
+
+#ifdef _WIN32
+        if (!allowClick)
+        {
+            auto hwnd = glfwGetWin32Window(static_cast<GLFWwindow *>(windowPtr));
+            ShowWindow(hwnd, SW_HIDE);
+            SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
+            ShowWindow(hwnd, SW_SHOW);
+        }
+#endif
 
         // Constructs the system and render interfaces, creates a window, and attaches the renderer.
         if (!windowPtr)
