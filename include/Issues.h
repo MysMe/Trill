@@ -17,6 +17,7 @@ namespace issues
     {
         size_t count;
         size_t unseen;
+        size_t blocked;
         std::optional<std::chrono::system_clock::time_point> lastUpdate;
     };
 

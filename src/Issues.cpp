@@ -15,6 +15,14 @@ namespace issues
 
 		auto seenKeyId = data.customFields.sKeys.keys.tryGet(fields::seenState::notSeen);
 
+		std::array ignoreKeyIds
+		{
+			data.customFields.sKeys.keys.tryGet(fields::seenState::blocked),
+			data.customFields.sKeys.keys.tryGet(fields::seenState::needsAdditionalInfo),
+			data.customFields.sKeys.keys.tryGet(fields::seenState::awaitingResponse),
+			data.customFields.sKeys.keys.tryGet(fields::seenState::deferred),
+		};
+
 		for (auto &card : cards)
 		{
 			auto customFields = card["customFieldItems"];
@@ -30,18 +38,29 @@ namespace issues
 			auto type = data.customFields.pKeys.keys.tryGet(priorityValue.get<std::string>());
 			if (type)
 			{
-				++currentIssues[*type].count;
+				auto seenState = std::find_if(customFields.begin(), customFields.end(), [&data](const auto &field)
+												{ return field["idCustomField"].template get<std::string>() == data.customFields.sKeys.fieldId; });
 
-				if (seenKeyId)
+				if (seenState != customFields.end() && seenState->contains("idValue") && !(*seenState)["idValue"].is_null())
 				{
-					auto seenState = std::find_if(customFields.begin(), customFields.end(), [&data](const auto &field)
-												  { return field["idCustomField"].template get<std::string>() == data.customFields.sKeys.fieldId; });
-
-					if (seenState != customFields.end() && seenState->contains("idValue") && !(*seenState)["idValue"].is_null() && (*seenState)["idValue"] == *seenKeyId)
+					//If this is "not seen" mark it so
+					if (seenKeyId && (*seenState)["idValue"] == *seenKeyId)
 					{
 						++currentIssues[*type].unseen;
 					}
+					//Otherwise if this is in the list of types to ignore, skip it
+					if (std::any_of(ignoreKeyIds.begin(), ignoreKeyIds.end(), [&seenState](const auto &id)
+									 { return id && (*seenState)["idValue"] == *id; }))
+					{
+						++currentIssues[*type].blocked;
+					}
+					else
+					{
+						//Only count unblocked tickets
+						++currentIssues[*type].count;
+					}
 				}
+
 
 				auto lastActivityJson = card["dateLastActivity"];
 				if (!lastActivityJson.is_null())

@@ -21,7 +21,9 @@ namespace fields
 		notSeen,
 		seen,
 		inProgress,
-		onHold,
+		blocked,
+		needsAdditionalInfo,
+		awaitingResponse,
 		actioned,
 		deferred
 	};
