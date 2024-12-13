@@ -8,27 +8,52 @@ namespace UI
 {
 	struct model
 	{
-		size_t hotfixes = 0;
-		size_t hotfixesUnseen = 0;
-		std::string hotfixesLast;
+		static std::string timeToString(const std::optional<std::chrono::system_clock::time_point> &time)
+		{
+			if (!time.has_value())
+				return "";
+			auto time_t = std::chrono::system_clock::to_time_t(time.value());
+			std::tm tm = *std::localtime(&time_t);
+			std::string result(20, '\0');
+			std::strftime(result.data(), result.size(), "%F %T", &tm);
+			return result;
+		};
 
-		size_t medium = 0;
-		size_t mediumUnseen = 0;
-		std::string mediumLast;
+		struct trelloSummary
+		{
+			size_t count;
+			size_t unseen;
+			size_t blocked;
+			std::string lastUpdate;
 
-		size_t low = 0;
-		size_t lowUnseen = 0;
-		std::string lowLast;
+			void from(const issues::issueSummary& summary)
+			{
+				count = summary.count;
+				unseen = summary.unseen;
+				blocked = summary.blocked;
+				lastUpdate = timeToString(summary.lastUpdate);
+			}
 
-		size_t veryLow = 0;
-		size_t veryLowUnseen = 0;
-		std::string veryLowLast;
+			void add(const issues::issueSummary& summary)
+			{
+				count += summary.count;
+				unseen += summary.unseen;
+				blocked += summary.blocked;
+			}
+		};
 
-		size_t resolved = 0;
+		struct troncboxSummary
+		{
+			size_t employeesWithoutEmployeeTB;
+			size_t employeesWithoutPrimaryRole;
+		};
+
+		std::size_t resolved;
 		std::string syncLast;	
 
-		size_t missingTB = 0;
-		size_t missingPrimary = 0;
+		std::array<trelloSummary, 4> trelloSummaries;
+		trelloSummary trelloAll;
+		troncboxSummary troncbox;
 
 		model() = default;
 		//The UI holds a reference to the model, so we need to make sure it's not copied or moved.
@@ -38,44 +63,30 @@ namespace UI
 		model& operator=(model&&) = delete;
 		~model() = default;
 
-		void set(const keyValueLookup<fields::priority, issues::issueSummary>& issues, size_t resolvedCount, troncboxHandler::troncboxResponse troncbox)
+		void set(const keyValueLookup<fields::priority, issues::issueSummary>& issues, size_t resolvedCount, troncboxHandler::troncboxResponse troncboxData)
 		{
-			auto timeToString = [](const std::optional<std::chrono::system_clock::time_point>& time) -> std::string
-				{
-					if (!time.has_value())
-						return "";
-					auto time_t = std::chrono::system_clock::to_time_t(time.value());
-					std::tm tm = *std::localtime(&time_t);
-					std::string result(20, '\0');
-					std::strftime(result.data(), result.size(), "%F %T", &tm);
-					return result;
-				};
+			trelloAll = {};
+			const auto priorities = { fields::priority::hotfix, fields::priority::regular, fields::priority::low, fields::priority::veryLow };
+			std::optional<std::chrono::system_clock::time_point> minTime;
 
-			const auto& hotfixSummary = issues.getOr(fields::priority::hotfix, {});
-			hotfixes = hotfixSummary.count;
-			hotfixesUnseen = hotfixSummary.unseen;
-			hotfixesLast = timeToString(hotfixSummary.lastUpdate);
-
-			const auto& mediumSummary = issues.getOr(fields::priority::regular, {});
-			medium = mediumSummary.count;
-			mediumUnseen = mediumSummary.unseen;
-			mediumLast = timeToString(mediumSummary.lastUpdate);
-
-			const auto& lowSummary = issues.getOr(fields::priority::low, {});
-			low = lowSummary.count;
-			lowUnseen = lowSummary.unseen;
-			lowLast = timeToString(lowSummary.lastUpdate);
-
-			const auto& veryLowSummary = issues.getOr(fields::priority::veryLow, {});
-			veryLow = veryLowSummary.count;
-			veryLowUnseen = veryLowSummary.unseen;
-			veryLowLast = timeToString(veryLowSummary.lastUpdate);
-
-			resolved = resolvedCount;
+			for (auto priority : priorities)
+			{
+				const auto& summary = issues.getOr(priority, {});
+				auto& trelloSummary = trelloSummaries[static_cast<size_t>(priority)];
+				
+				trelloSummary.from(summary);
+				trelloAll.add(summary);
+				if (!minTime)
+					minTime = summary.lastUpdate;
+				else if (summary.lastUpdate && summary.lastUpdate < minTime)
+					minTime = summary.lastUpdate;
+			}
+			trelloAll.lastUpdate = timeToString(minTime);
 			syncLast = timeToString(std::chrono::system_clock::now());
 
-			missingTB = troncbox.employeesWithoutEmployeeTB;
-			missingPrimary = troncbox.employeesWithoutPrimaryRole;
+			troncbox.employeesWithoutEmployeeTB = troncboxData.employeesWithoutEmployeeTB;
+			troncbox.employeesWithoutPrimaryRole = troncboxData.employeesWithoutPrimaryRole;
+			resolved = resolvedCount;
 		}
 
 		void bind(Rml::Context* context, Rml::DataModelHandle& model)
@@ -83,22 +94,30 @@ namespace UI
 			Rml::DataModelConstructor constructor = context->CreateDataModel("model");
 			if (!constructor)
 				return;
-			constructor.Bind("hotfixes", &hotfixes);
-			constructor.Bind("hotfixesUnseen", &hotfixesUnseen);
-			constructor.Bind("hotfixesLast", &hotfixesLast);
-			constructor.Bind("medium", &medium);
-			constructor.Bind("mediumUnseen", &mediumUnseen);
-			constructor.Bind("mediumLast", &mediumLast);
-			constructor.Bind("low", &low);
-			constructor.Bind("lowUnseen", &lowUnseen);
-			constructor.Bind("lowLast", &lowLast);
-			constructor.Bind("veryLow", &veryLow);
-			constructor.Bind("veryLowUnseen", &veryLowUnseen);
-			constructor.Bind("veryLowLast", &veryLowLast);
-			constructor.Bind("resolved", &resolved);
+
+			if (auto handle = constructor.RegisterStruct<trelloSummary>())
+			{
+				handle.RegisterMember("count", &trelloSummary::count);
+				handle.RegisterMember("unseen", &trelloSummary::unseen);
+				handle.RegisterMember("blocked", &trelloSummary::blocked);
+				handle.RegisterMember("last", &trelloSummary::lastUpdate);
+			}
+
+			if (auto handle = constructor.RegisterStruct<troncboxSummary>())
+			{
+				handle.RegisterMember("missingTB", &troncboxSummary::employeesWithoutEmployeeTB);
+				handle.RegisterMember("missingPrimary", &troncboxSummary::employeesWithoutPrimaryRole);
+			}
+
+			constructor.Bind("trelloAll", &trelloAll);
+			constructor.Bind("hotfixes", &trelloSummaries[0]);
+			constructor.Bind("medium", &trelloSummaries[1]);
+			constructor.Bind("low", &trelloSummaries[2]);
+			constructor.Bind("veryLow", &trelloSummaries[3]);
+			constructor.Bind("troncbox", &troncbox);
 			constructor.Bind("syncLast", &syncLast);
-			constructor.Bind("missingTB", &missingTB);
-			constructor.Bind("missingPrimary", &missingPrimary);
+			constructor.Bind("resolved", &resolved);
+
 			model = constructor.GetModelHandle();
 		}
 	};

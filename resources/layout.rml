@@ -36,13 +36,13 @@
 					Hotfixes
 				</cardtitle>
 				<cardcontent>
-					{{hotfixes}}
+					{{hotfixes.count}}
 				</cardcontent>
-				<cardunseentext data-if="hotfixes != 0 && hotfixesUnseen != 0" style="background-color: #640000;">
-					Unseen: {{hotfixesUnseen}}
+				<cardunseentext data-if="hotfixes.unseen != 0" style="background-color: #640000;">
+					Unseen: {{hotfixes.unseen}}
 				</cardunseentext>
-				<cardsubtext data-if="hotfixes != 0 && hotfixesUnseen == 0">
-					Most Recent<br/>{{hotfixesLast}}
+				<cardsubtext data-if="hotfixes.count != 0 && hotfixes.unseen == 0">
+					Most Recent<br/>{{hotfixes.last}}
 				</cardsubtext>
 			</card>
 
@@ -51,13 +51,13 @@
 					Medium
 				</cardtitle>
 				<cardcontent>
-					{{medium}}
+					{{medium.count}}
 				</cardcontent>
-				<cardunseentext data-if="medium != 0 && mediumUnseen != 0" style="background-color: #b26200;">
-					Unseen: {{mediumUnseen}}
+				<cardunseentext data-if="medium.count != 0 && medium.unseen != 0" style="background-color: #b26200;">
+					Unseen: {{medium.unseen}}
 				</cardunseentext>
-				<cardsubtext data-if="medium != 0 && mediumUnseen == 0">
-					Most Recent<br/>{{mediumLast}}
+				<cardsubtext data-if="medium.count != 0 && medium.unseen == 0">
+					Most Recent<br/>{{medium.last}}
 				</cardsubtext>
 			</card>
 
@@ -66,13 +66,13 @@
 					Low
 				</cardtitle>
 				<cardcontent>
-					{{low}}
+					{{low.count}}
 				</cardcontent>
-				<cardunseentext data-if="low != 0 && lowUnseen != 0" style="background-color: #151563;">
-					Unseen: {{lowUnseen}}
+				<cardunseentext data-if="low.count != 0 && low.unseen != 0" style="background-color: #151563;">
+					Unseen: {{low.unseen}}
 				</cardunseentext>
-				<cardsubtext data-if="low != 0 && lowUnseen == 0">
-					Most Recent<br/>{{lowLast}}
+				<cardsubtext data-if="low.count != 0 && low.unseen == 0">
+					Most Recent<br/>{{low.last}}
 				</cardsubtext>
 			</card>
 			
@@ -81,13 +81,13 @@
 					Very Low
 				</cardtitle>
 				<cardcontent>
-					{{veryLow}}
+					{{veryLow.count}}
 				</cardcontent>
-				<cardunseentext data-if="veryLow != 0 && veryLowUnseen != 0" style="background-color: #006565;">
-					Unseen: {{veryLowUnseen}}
+				<cardunseentext data-if="veryLow.count != 0 && veryLow.unseen != 0" style="background-color: #006565;">
+					Unseen: {{veryLow.unseen}}
 				</cardunseentext>
-				<cardsubtext data-if="veryLow != 0 && veryLowUnseen == 0">
-					Most Recent<br/>{{veryLowLast}}
+				<cardsubtext data-if="veryLow.count != 0 && veryLow.unseen == 0">
+					Most Recent<br/>{{veryLow.last}}
 				</cardsubtext>
 			</card>
 
@@ -110,7 +110,7 @@
 					Missing Primary
 				</cardtitle>
 				<cardcontent>
-					{{missingPrimary}}
+					{{troncbox.missingPrimary}}
 				</cardcontent>
 			</card>
 
@@ -127,7 +127,7 @@
 					Missing Emp. TB
 				</cardtitle>
 				<cardcontent>
-					{{missingTB}}
+					{{troncbox.missingTB}}
 				</cardcontent>
 			</card>
 		</div>
