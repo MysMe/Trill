@@ -71,7 +71,8 @@ namespace UI
 
 			for (auto priority : priorities)
 			{
-				const auto& summary = issues.getOr(priority, {});
+				const issues::issueSummary defaultSummary{};
+				const auto& summary = issues.getOr(priority, defaultSummary);
 				auto& trelloSummary = trelloSummaries[static_cast<size_t>(priority)];
 				
 				trelloSummary.from(summary);
