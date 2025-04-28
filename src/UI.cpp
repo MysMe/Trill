@@ -221,9 +221,13 @@ namespace UI
 
 	void fetch(model& data, const requestHandler& api, const api::data& apiData)
     {
-		const auto issues = issues::getCurrentIssues(api, apiData);
-		const auto resolutions = resolutions::getTicketsResolvedToday(api, apiData);
-		data.set(issues, resolutions);
+        keyValueLookup<std::string, std::vector<api::card>> allCards;
+        for (const auto& list : apiData.lists)
+        {
+			auto cardsInList = api::getCardsInList(api, apiData, list.second);
+            allCards[list.first] = std::move(cardsInList);
+        }
+		data.set(std::move(allCards));
     }
 
 	//Use this to ensure the function is called when the scope is exited
@@ -302,7 +306,7 @@ namespace UI
         }
 
 		Rml::DataModelHandle dataModel;
-		data.bind(context, dataModel);
+		data.bind(context, dataModel, apiData);
 
 		contentDocument = context->LoadDocument((resourcesDirectory / "layout.rml").string());
 		if (contentDocument)

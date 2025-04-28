@@ -48,13 +48,24 @@ namespace fields
 		keyValueLookup<seenState, std::string> keys;
 	};
 
-	//Combined key storage
-	struct customFields
+	enum class fieldType
 	{
-		priorityKeys pKeys;
-		resolutionKeys rKeys;
-		seenKeys sKeys;
+		list,
+		date,
+		number,
+		checkbox,
+		text
 	};
+
+	struct dynamicField
+	{
+		std::string fieldId;
+		keyValueLookup<std::string, std::string> keys;
+		bool isSingleValue = false;
+		fieldType type = fieldType::list;
+	};
+
+	using customFields = keyValueLookup<std::string, dynamicField>;
 
 	customFields getCustomFields(const requestHandler& api, std::string_view boardId);
 }

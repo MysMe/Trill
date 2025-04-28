@@ -1,9 +1,9 @@
 add_rules("mode.debug", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
 
-add_requires("curlpp", "nlohmann_json", "osmanip", "glfw", "rmlui 5.1", "glad")
+add_requires("curlpp master", "nlohmann_json", "osmanip", "glfw", "rmlui 5.1", "glad")
 
-set_languages("c++20")
+set_languages("c++23")
 
 target("Trill")
     set_default(true)

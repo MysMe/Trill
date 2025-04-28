@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <string_view>
 #include <iostream>
-#include "Console.h"
 #include "UI.h"
 #include <fstream>
 #include <chrono>
@@ -34,21 +33,11 @@ reset:
         //Remove log file if one exists
         std::remove("error.log");
         
-        constexpr std::string_view probeArgs[] = {"probe", "p", "--p", "--probe", "-p", "-probe"};
-        bool probe = std::any_of(argv, argv + argc, [&probeArgs](const char *arg)
-                                 { return std::ranges::find(probeArgs, arg) != std::end(probeArgs); });
-
         constexpr std::string_view clickArgs[] = {"click", "c", "--c", "--click", "-c", "-click"};
         bool canClick = std::any_of(argv, argv + argc, [&clickArgs](const char *arg)
                                 { return std::ranges::find(clickArgs, arg) != std::end(clickArgs); });
-        if (probe)
-        {
-            console::renderToConsole();
-        }
-        else
-        {
-            UI::renderToUI(canClick);
-        }
+
+        UI::renderToUI(canClick);
     }
     catch (const std::exception &e)
     {

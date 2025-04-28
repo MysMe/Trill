@@ -36,13 +36,13 @@
 					Hotfixes
 				</cardtitle>
 				<cardcontent>
-					{{hotfixes.count}}
+					{{Bugs_And_Queries() | where('Priority==Hotfix', 'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | count}}
 				</cardcontent>
-				<cardunseentext data-if="hotfixes.unseen != 0" style="background-color: #640000;">
-					Unseen: {{hotfixes.unseen}}
+				<cardunseentext data-if="Bugs_And_Queries() | where('Priority==Hotfix', 'Opsyte Status==Not Seen') | count" style="background-color: #640000;">
+					Unseen: {{Bugs_And_Queries() | where('Priority==Hotfix', 'Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
-				<cardsubtext data-if="hotfixes.count != 0 && hotfixes.unseen == 0">
-					Most Recent<br/>{{hotfixes.last}}
+				<cardsubtext data-if="(Bugs_And_Queries() | where('Priority==Hotfix') | count) != 0 && (Bugs_And_Queries() | where('Priority==Hotfix', 'Opsyte Status==Not Seen') | count) == 0">
+					Most Recent<br/>{{Bugs_And_Queries() | where('Priority==Hotfix') | mostRecent}}
 				</cardsubtext>
 			</card>
 
@@ -51,13 +51,13 @@
 					Medium
 				</cardtitle>
 				<cardcontent>
-					{{medium.count}}
+					{{Bugs_And_Queries() | where('Priority==Regular', 'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | count}}
 				</cardcontent>
-				<cardunseentext data-if="medium.count != 0 && medium.unseen != 0" style="background-color: #b26200;">
-					Unseen: {{medium.unseen}}
+				<cardunseentext data-if="Bugs_And_Queries() | where('Priority==Regular', 'Opsyte Status==Not Seen') | count" style="background-color: #b26200;">
+					Unseen: {{Bugs_And_Queries() | where('Priority==Regular', 'Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
-				<cardsubtext data-if="medium.count != 0 && medium.unseen == 0">
-					Most Recent<br/>{{medium.last}}
+				<cardsubtext data-if="(Bugs_And_Queries() | where('Priority==Regular') | count) != 0 && (Bugs_And_Queries() | where('Priority==Regular', 'Opsyte Status==Not Seen') | count) == 0">
+					Most Recent<br/>{{Bugs_And_Queries() | where('Priority==Regular') | mostRecent}}
 				</cardsubtext>
 			</card>
 
@@ -66,37 +66,37 @@
 					Low
 				</cardtitle>
 				<cardcontent>
-					{{low.count}}
+					{{Bugs_And_Queries() | where('Priority==Low', 'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | count}}
 				</cardcontent>
-				<cardunseentext data-if="low.count != 0 && low.unseen != 0" style="background-color: #151563;">
-					Unseen: {{low.unseen}}
+				<cardunseentext data-if="Bugs_And_Queries() | where('Priority==Low', 'Opsyte Status==Not Seen') | count" style="background-color: #151563;">
+					Unseen: {{Bugs_And_Queries() | where('Priority==Low', 'Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
-				<cardsubtext data-if="low.count != 0 && low.unseen == 0">
-					Most Recent<br/>{{low.last}}
+				<cardsubtext data-if="(Bugs_And_Queries() | where('Priority==Low') | count) != 0 && (Bugs_And_Queries() | where('Priority==Low', 'Opsyte Status==Not Seen') | count) == 0">
+					Most Recent<br/>{{Bugs_And_Queries() | where('Priority==Low') | mostRecent}}
 				</cardsubtext>
 			</card>
-			
+
 			<card style="background-color: #00b2b2;">
 				<cardtitle>
 					Very Low
 				</cardtitle>
 				<cardcontent>
-					{{veryLow.count}}
+					{{Bugs_And_Queries() | where('Priority==Very Low', 'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | count}}
 				</cardcontent>
-				<cardunseentext data-if="veryLow.count != 0 && veryLow.unseen != 0" style="background-color: #006565;">
-					Unseen: {{veryLow.unseen}}
+				<cardunseentext data-if="Bugs_And_Queries() | where('Priority==Very Low', 'Opsyte Status==Not Seen') | count" style="background-color: #006565;">
+					Unseen: {{Bugs_And_Queries() | where('Priority==Very Low', 'Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
-				<cardsubtext data-if="veryLow.count != 0 && veryLow.unseen == 0">
-					Most Recent<br/>{{veryLow.last}}
+				<cardsubtext data-if="(Bugs_And_Queries() | where('Priority==Very Low') | count) != 0 && (Bugs_And_Queries() | where('Priority==Very Low', 'Opsyte Status==Not Seen') | count) == 0">
+					Most Recent<br/>{{Bugs_And_Queries() | where('Priority==Very Low') | mostRecent}}
 				</cardsubtext>
 			</card>
-
+			
 			<card style="background-color: #00a600;">
 				<cardtitle>
 					Resolved
 				</cardtitle>
 				<cardcontent>
-					{{resolved}}
+					{{Resolved() | today('Resolved At') | count}}
 				</cardcontent>
 				<cardsubtext>
 					Last Synced<br/>{{syncLast}}

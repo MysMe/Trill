@@ -8,18 +8,10 @@
 namespace api
 {
     struct data;
+    struct card;
 }
 
 namespace issues
 {
-	//Summary of issues for a single priority
-    struct issueSummary
-    {
-        size_t count;
-        size_t unseen;
-        size_t blocked;
-        std::optional<std::chrono::system_clock::time_point> lastUpdate;
-    };
-
-    keyValueLookup<fields::priority, issueSummary> getCurrentIssues(const requestHandler &api, const api::data &data);
+    std::vector<api::card> getCurrentCards(const requestHandler &api, const api::data &data);
 }
