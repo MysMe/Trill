@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <cstdint>
-#include "Troncbox.h"
 #include <RmlUi/Core.h>
 
 namespace UI
@@ -42,18 +41,11 @@ namespace UI
 			}
 		};
 
-		struct troncboxSummary
-		{
-			size_t employeesWithoutEmployeeTB;
-			size_t employeesWithoutPrimaryRole;
-		};
-
 		std::size_t resolved;
 		std::string syncLast;	
 
 		std::array<trelloSummary, 4> trelloSummaries;
 		trelloSummary trelloAll;
-		troncboxSummary troncbox;
 
 		model() = default;
 		//The UI holds a reference to the model, so we need to make sure it's not copied or moved.
@@ -63,7 +55,7 @@ namespace UI
 		model& operator=(model&&) = delete;
 		~model() = default;
 
-		void set(const keyValueLookup<fields::priority, issues::issueSummary>& issues, size_t resolvedCount, troncboxHandler::troncboxResponse troncboxData)
+		void set(const keyValueLookup<fields::priority, issues::issueSummary>& issues, size_t resolvedCount)
 		{
 			trelloAll = {};
 			const auto priorities = { fields::priority::hotfix, fields::priority::regular, fields::priority::low, fields::priority::veryLow };
@@ -85,8 +77,6 @@ namespace UI
 			trelloAll.lastUpdate = timeToString(minTime);
 			syncLast = timeToString(std::chrono::system_clock::now());
 
-			troncbox.employeesWithoutEmployeeTB = troncboxData.employeesWithoutEmployeeTB;
-			troncbox.employeesWithoutPrimaryRole = troncboxData.employeesWithoutPrimaryRole;
 			resolved = resolvedCount;
 		}
 
@@ -104,18 +94,11 @@ namespace UI
 				handle.RegisterMember("last", &trelloSummary::lastUpdate);
 			}
 
-			if (auto handle = constructor.RegisterStruct<troncboxSummary>())
-			{
-				handle.RegisterMember("missingTB", &troncboxSummary::employeesWithoutEmployeeTB);
-				handle.RegisterMember("missingPrimary", &troncboxSummary::employeesWithoutPrimaryRole);
-			}
-
 			constructor.Bind("trelloAll", &trelloAll);
 			constructor.Bind("hotfixes", &trelloSummaries[0]);
 			constructor.Bind("medium", &trelloSummaries[1]);
 			constructor.Bind("low", &trelloSummaries[2]);
 			constructor.Bind("veryLow", &trelloSummaries[3]);
-			constructor.Bind("troncbox", &troncbox);
 			constructor.Bind("syncLast", &syncLast);
 			constructor.Bind("resolved", &resolved);
 

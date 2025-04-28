@@ -103,33 +103,5 @@
 				</cardsubtext>
 			</card>
 		</div>
-
-		<div style="display: flex; justify-content: space-between; width: 100%; flex-wrap:wrap;">
-			<card style="background-color: #5482a5;">
-				<cardtitle>
-					Missing Primary
-				</cardtitle>
-				<cardcontent>
-					{{troncbox.missingPrimary}}
-				</cardcontent>
-			</card>
-
-			<!-- Use three empty cards to match the width -->
-			<card style="background-color: transparent;">
-			</card>
-			<card style="background-color: transparent;">
-			</card>
-			<card style="background-color: transparent;">
-			</card>
-
-			<card style="background-color: #5482a5;">
-				<cardtitle>
-					Missing Emp. TB
-				</cardtitle>
-				<cardcontent>
-					{{troncbox.missingTB}}
-				</cardcontent>
-			</card>
-		</div>
 	</body>
 </rml>

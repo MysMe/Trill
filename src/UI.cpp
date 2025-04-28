@@ -16,8 +16,6 @@
 #include <format>
 #include "UIModel.h"
 
-#include "Troncbox.h"
-
 #ifdef _WIN32
 #define NOMINMAX
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -221,12 +219,11 @@ namespace UI
         return result;
     }
 
-	void fetch(model& data, const requestHandler& api, const api::data& apiData, const troncboxHandler& troncbox)
+	void fetch(model& data, const requestHandler& api, const api::data& apiData)
     {
 		const auto issues = issues::getCurrentIssues(api, apiData);
 		const auto resolutions = resolutions::getTicketsResolvedToday(api, apiData);
-        const auto tbResult = troncbox.get();
-		data.set(issues, resolutions, tbResult);
+		data.set(issues, resolutions);
     }
 
 	//Use this to ensure the function is called when the scope is exited
@@ -245,11 +242,10 @@ namespace UI
         const auto keys = keys::loadKeys(constants::project_path / "keys/");
         const auto api = requestHandler(keys);
         const auto apiData = api::getApiData(api);
-        const auto troncbox = troncboxHandler(keys);
 
         model data;
 		//Initial fetch
-		fetch(data, api, apiData, troncbox);
+		fetch(data, api, apiData);
 
         auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, allowClick);
 		atScopeExit backendCleanUp([&] { Backend::Shutdown(); });
@@ -367,7 +363,7 @@ namespace UI
 			//If we haven't fetched in the last minute, fetch now
             if (eventResults.forceFetch || std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(60))
             {
-				fetch(data, api, apiData, troncbox);
+				fetch(data, api, apiData);
 				dataModel.DirtyAllVariables();
 				lastFetch = std::chrono::system_clock::now();
             }
