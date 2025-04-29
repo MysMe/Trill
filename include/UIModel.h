@@ -82,6 +82,7 @@ namespace UI
 		queryModel(std::vector<api::card>&& cards) : filtered(std::move(cards)) {}
 
 		static inline std::vector<queryModel> queryCache;
+		static inline keyValueLookup<std::string, std::vector<api::card>> queryStore;
 
 		static void initCache(queryModel&& model)
 		{
@@ -186,6 +187,30 @@ namespace UI
 			return Rml::Variant{ result };
 		}
 
+
+		static Rml::Variant saveQuery(const Rml::VariantList& args)
+		{
+			if (args.size() != 2 || queryCache.empty())
+				return Rml::Variant{};
+			auto name = args[1].Get<std::string>();
+			auto& list = queryCache.back();
+			queryStore[name] = list.filtered;
+			//Note that we don't want to provide output after saving the query, as we can therefore save from content
+			return Rml::Variant{};
+		}
+
+		static Rml::Variant loadQuery(const Rml::VariantList& args)
+		{
+			if (args.size() != 1)
+				return Rml::Variant{};
+			auto name = args[0].Get<std::string>();
+			auto it = queryStore.tryGet(name);
+			if (!it)
+				return Rml::Variant{};
+			initCache(queryModel(*it));
+			return Rml::Variant{ "Unresolved Query" };
+		}
+
 		static void bind(Rml::DataModelConstructor& constructor)
 		{
 			auto handle = constructor.RegisterStruct<queryModel>();
@@ -195,6 +220,8 @@ namespace UI
 			constructor.RegisterTransformFunc("count", transformCount);
 			constructor.RegisterTransformFunc("mostRecent", transformMostRecent);
 			constructor.RegisterTransformFunc("today", today);
+			constructor.RegisterTransformFunc("as", saveQuery);
+			constructor.RegisterTransformFunc("from", loadQuery);
 		}
 	};
 
