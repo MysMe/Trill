@@ -79,4 +79,6 @@ public:
     auto end() { return data.end(); }
     auto begin() const { return data.begin(); }
     auto end() const { return data.end(); }
+
+	void clear() { data.clear(); }
 };

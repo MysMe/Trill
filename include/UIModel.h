@@ -27,9 +27,9 @@ namespace UI
 		std::string value;
 		operation op = operation::none;
 
-		bool operator()(const api::card& card) const
+		bool operator()(const api::card* card) const
 		{
-			const std::string* content = card.customFields.tryGet(key);
+			const std::string* content = card->customFields.tryGet(key);
 			switch (op)
 			{
 			default:
@@ -75,14 +75,14 @@ namespace UI
 
 	struct queryModel
 	{
-		std::vector<api::card> filtered;
+		std::vector<api::card*> filtered;
 
 		queryModel() = default;
-		queryModel(const std::vector<api::card>& cards) : filtered(cards) {}
-		queryModel(std::vector<api::card>&& cards) : filtered(std::move(cards)) {}
+		queryModel(std::vector<api::card>& cards) : filtered(cards | std::views::transform([](auto& card) { return &card; }) | std::ranges::to<std::vector<api::card*>>()) {}
+		queryModel(const std::vector<api::card*>& cards) : filtered(cards) {}
 
 		static inline std::vector<queryModel> queryCache;
-		static inline keyValueLookup<std::string, std::vector<api::card>> queryStore;
+		static inline keyValueLookup<std::string, std::vector<api::card*>> queryStore;
 
 		static void initCache(queryModel&& model)
 		{
@@ -92,7 +92,7 @@ namespace UI
 
 		void match(const transform& t)
 		{
-			filtered = filtered | std::views::filter(t) | std::ranges::to<std::vector<api::card>>();
+			filtered = filtered | std::views::filter(t) | std::ranges::to<std::vector<api::card*>>();
 		}
 
 		void matchAny(std::span<const transform> transforms)
@@ -100,7 +100,7 @@ namespace UI
 			filtered = filtered | std::views::filter([transforms](const auto& card)
 				{
 					return std::ranges::any_of(transforms, [&card](const auto& t) { return t(card); });
-				}) | std::ranges::to<std::vector<api::card>>();
+				}) | std::ranges::to<std::vector<api::card*>>();
 		}
 		
 		static Rml::Variant where(const Rml::VariantList& args)
@@ -138,11 +138,10 @@ namespace UI
 		{
 			if (queryCache.empty())
 				return Rml::Variant{};
-			//Intentional copy
-
 			auto now = std::chrono::system_clock::now();
 			auto today = std::format("{:%Y-%m-%d}", now);
 
+			//Intentional copy
 			auto list = queryCache.back();
 			for (int i = 1; i < args.size(); i++)
 			{
@@ -176,9 +175,9 @@ namespace UI
 			}
 			auto mostRecent = std::ranges::max_element(list.filtered, [](const auto& a, const auto& b)
 				{
-					return a.lastUpdate < b.lastUpdate;
+					return a->lastUpdate < b->lastUpdate;
 				});
-			auto lastUpdate = mostRecent->lastUpdate;
+			auto lastUpdate = (*mostRecent)->lastUpdate;
 			//Format the time to a string
 			auto time_t = std::chrono::system_clock::to_time_t(lastUpdate);
 			std::tm tm = *std::localtime(&time_t);
@@ -253,6 +252,7 @@ namespace UI
 		void set(keyValueLookup<std::string, std::vector<api::card>>&& cards)
 		{
 			cardLists = std::move(cards);
+			queryModel::queryStore.clear();
 			syncLast = timeToString(std::chrono::system_clock::now());
 		}
 
