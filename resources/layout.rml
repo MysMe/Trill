@@ -106,6 +106,15 @@
 					Last Synced<br/>{{syncLast}}
 				</cardsubtext>
 			</card>
+
+			<card style="background-color: #800080;">
+				<cardtitle>
+					On Troncbox Today
+				</cardtitle>
+				<cardcontent style="margin-top: 1rem;">
+					{{Todays_Troncbox_Legend() | members('initials')}}
+				</cardcontent>
+			</card>
 		</div>
 	</body>
 </rml>

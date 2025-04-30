@@ -30,7 +30,17 @@ namespace api
 		//Get the custom fields for the board, this automatically infers field keys
 		auto customFields = fields::getCustomFields(api, boardId);
 
-        return {boardId, customFields, namedLists};
+		auto memberResponse = api.get(urls::getBoardMembers(boardId));
+
+		keyValueLookup<std::string, member> members;
+		for (auto member : memberResponse)
+		{
+			auto memberId = member["id"].get<std::string>();
+			auto memberName = member["fullName"].get<std::string>();
+			members[memberId] = { memberName };
+		}
+
+        return {boardId, customFields, namedLists, members};
     }
 
 	std::vector<card> getCardsInList(const requestHandler& api, const api::data& data, const std::string& listId)
@@ -46,6 +56,15 @@ namespace api
 			value.id = current["id"].get<std::string>();
 			value.name = current["name"].get<std::string>();
 			value.url = current["url"].get<std::string>();
+
+			for (auto memberId : current["idMembers"])
+			{
+				auto member = data.members.tryGet(memberId.get<std::string>());
+				if (member)
+				{
+					value.members.push_back(member);
+				}
+			}
 
 			//Add all dynamic fields
 			for (const auto& [name, fieldContent] : data.customFields)

@@ -4,12 +4,19 @@
 
 namespace api
 {
+    struct member
+    {
+		std::string fullName;
+		//Potential future prospect of having profile pictures
+    };
+
 	//General keys for all API requests
     struct data
     {
         std::string boardId;
 		fields::customFields customFields;
         keyValueLookup<std::string, std::string> lists;
+        keyValueLookup<std::string, member> members;
     };
 
     struct card
@@ -21,6 +28,7 @@ namespace api
         std::chrono::system_clock::time_point lastUpdate;
 
         keyValueLookup<std::string, std::string> customFields;
+		std::vector<const member*> members;
     };
 
     data getApiData(const requestHandler& api);

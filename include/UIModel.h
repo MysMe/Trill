@@ -68,7 +68,7 @@ namespace UI
 			result.key = content.substr(0, content.find(*it));
 			result.value = content.substr(result.key.size() + it->size());
 			result.op = static_cast<operation>(std::distance(transforms.begin(), it) + 1);
-			
+
 			return result;
 		}
 	};
@@ -102,7 +102,7 @@ namespace UI
 					return std::ranges::any_of(transforms, [&card](const auto& t) { return t(card); });
 				}) | std::ranges::to<std::vector<api::card*>>();
 		}
-		
+
 		static Rml::Variant where(const Rml::VariantList& args)
 		{
 			if (queryCache.empty())
@@ -210,6 +210,67 @@ namespace UI
 			return Rml::Variant{ "Unresolved Query" };
 		}
 
+		static Rml::Variant members(const Rml::VariantList& args)
+		{
+			if (queryCache.empty())
+				return Rml::Variant{};
+			std::optional<std::string> formatter;
+			if (args.size() == 2)
+			{
+				formatter = args[1].Get<std::string>();
+			}
+
+			auto& list = queryCache.back();
+			std::vector<const api::member*> members;
+			for (const auto& card : list.filtered)
+			{
+				for (auto member : card->members)
+				{
+					if (!std::ranges::contains(members, member))
+					{
+						members.push_back(member);
+					}
+				}
+			}
+
+			if (members.empty())
+				return Rml::Variant{};
+
+			std::ranges::sort(members, [](auto a, auto b)
+				{
+					return a->fullName < b->fullName;
+				});
+
+			auto format = [formatter](const std::string& name)
+			{
+				if (!formatter)
+					return name;
+
+				auto div = name.find(' ');
+				std::string_view first{ name.begin(), name.begin() + div };
+				std::string_view last{ name.begin() + div + 1, name.end() };
+
+				if (*formatter == "first")
+					return std::string{ first };
+				else if (*formatter == "last")
+					return std::string{ last };
+				else if (*formatter == "initialsDot")
+					return std::string{ first[0], '.', last[0], '.' };
+				else if (*formatter == "initials")
+					return std::string{ first[0], last[0] };
+
+				return name;
+			};
+
+			std::string result;
+			for (const auto& member : members)
+			{
+				result += format(member->fullName) + ", ";
+			}
+			result.resize(result.size() - 2); //Remove the last comma and space
+			return Rml::Variant{ result };
+		}
+
 		static void bind(Rml::DataModelConstructor& constructor)
 		{
 			auto handle = constructor.RegisterStruct<queryModel>();
@@ -221,12 +282,13 @@ namespace UI
 			constructor.RegisterTransformFunc("today", today);
 			constructor.RegisterTransformFunc("as", saveQuery);
 			constructor.RegisterTransformFunc("from", loadQuery);
+			constructor.RegisterTransformFunc("members", members);
 		}
 	};
 
 	struct model
 	{
-		static std::string timeToString(const std::optional<std::chrono::system_clock::time_point> &time)
+		static std::string timeToString(const std::optional<std::chrono::system_clock::time_point>& time)
 		{
 			if (!time.has_value())
 				return "";
@@ -237,7 +299,7 @@ namespace UI
 			return result;
 		};
 
-		std::string syncLast;	
+		std::string syncLast;
 
 		model() = default;
 		//The UI holds a reference to the model, so we need to make sure it's not copied or moved.
@@ -284,6 +346,8 @@ namespace UI
 
 				std::string name = list.first;
 				std::ranges::replace(name, ' ', '_');
+				//Remove any non-alphanumeric characters
+				name.erase(std::remove_if(name.begin(), name.end(), [](char c) { return !std::isalnum(static_cast<unsigned char>(c)) && c != '_'; }), name.end());
 				constructor.RegisterTransformFunc(name, accessor);
 			}
 			model = constructor.GetModelHandle();
