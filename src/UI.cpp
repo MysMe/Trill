@@ -239,7 +239,7 @@ namespace UI
         ~atScopeExit() { fn(); }
     };
 
-    void renderToUI(bool allowClick)
+    void renderToUI(bool interactive)
     {
 		userSettings = settings::getSettings();
 
@@ -251,15 +251,16 @@ namespace UI
 		//Initial fetch
 		fetch(data, api, apiData);
 
-        auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, allowClick);
+        auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, interactive);
 		atScopeExit backendCleanUp([&] { Backend::Shutdown(); });
 
 #ifdef _WIN32
-        if (!allowClick)
+        if (!interactive)
         {
             auto hwnd = glfwGetWin32Window(static_cast<GLFWwindow *>(windowPtr));
             ShowWindow(hwnd, SW_HIDE);
-            SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
+			//Floating, unclickable, undecorated, untabble, and always on top window
+            SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW);
             ShowWindow(hwnd, SW_SHOW);
         }
 #endif

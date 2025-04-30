@@ -33,11 +33,11 @@ reset:
         //Remove log file if one exists
         std::remove("error.log");
         
-        constexpr std::string_view clickArgs[] = {"click", "c", "--c", "--click", "-c", "-click"};
-        bool canClick = std::any_of(argv, argv + argc, [&clickArgs](const char *arg)
-                                { return std::ranges::find(clickArgs, arg) != std::end(clickArgs); });
+		constexpr std::string_view interactiveArgs[] = { "interactive", "i", "-i", "--interactive" };
+        bool interactive = std::any_of(argv, argv + argc, [&interactiveArgs](const char *arg)
+                                { return std::ranges::find(interactiveArgs, arg) != std::end(interactiveArgs); });
 
-        UI::renderToUI(canClick);
+        UI::renderToUI(interactive);
     }
     catch (const std::exception &e)
     {
