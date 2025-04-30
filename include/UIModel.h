@@ -81,13 +81,35 @@ namespace UI
 		queryModel(std::vector<api::card>& cards) : filtered(cards | std::views::transform([](auto& card) { return &card; }) | std::ranges::to<std::vector<api::card*>>()) {}
 		queryModel(const std::vector<api::card*>& cards) : filtered(cards) {}
 
-		static inline std::vector<queryModel> queryCache;
+		static inline std::unique_ptr<queryModel> queryCache;
 		static inline keyValueLookup<std::string, std::vector<api::card*>> queryStore;
+		static inline keyValueLookup<std::string, std::vector<api::card>> cardLists;
+		static inline keyValueLookup<int, std::string> cardLookup;
 
-		static void initCache(queryModel&& model)
+		static queryModel* getOrCreateQuery(const Rml::VariantList& args)
 		{
-			queryCache.clear();
-			queryCache.emplace_back(std::move(model));
+			//Query already in progress, so continue that one
+			if (queryCache)
+				return queryCache.get();
+			//No running query and we can't start one
+			if (args.empty())
+				return nullptr;
+			int index;
+			if (!args[0].GetInto(index))
+				return nullptr;
+			auto listName = cardLookup.tryGet(index);
+			if (!listName)
+				return nullptr;
+			auto list = cardLists.tryGet(*listName);
+			if (!list)
+				return nullptr;
+			queryCache = std::make_unique<queryModel>(*list);
+			return queryCache.get();
+		}
+
+		static void endQuery()
+		{
+			queryCache.reset();
 		}
 
 		void match(const transform& t)
@@ -105,75 +127,75 @@ namespace UI
 
 		static Rml::Variant where(const Rml::VariantList& args)
 		{
-			if (queryCache.empty())
+			auto query = getOrCreateQuery(args);
+			if (!query)
 				return Rml::Variant{};
-			//Intentional copy
-			auto list = queryCache.back();
+
 			for (int i = 1; i < args.size(); i++)
 			{
 				transform t = transform::fromString(args[i].Get<std::string>()).value();
-				list.match(t);
+				query->match(t);
 			}
-			queryCache.emplace_back(std::move(list));
 			return Rml::Variant{ "Unresolved Query" };
 		}
 
 		static Rml::Variant whereAny(const Rml::VariantList& args)
 		{
-			if (queryCache.empty())
+			auto query = getOrCreateQuery(args);
+			if (!query)
 				return Rml::Variant{};
-			//Intentional copy
-			auto list = queryCache.back();
+
 			std::vector<transform> transforms;
 			for (int i = 1; i < args.size(); i++)
 			{
 				transforms.emplace_back(transform::fromString(args[i].Get<std::string>()).value());
 			}
-			list.matchAny(transforms);
-			queryCache.emplace_back(std::move(list));
+			query->matchAny(transforms);
 			return Rml::Variant{ "Unresolved Query" };
 		}
 
 		static Rml::Variant today(const Rml::VariantList& args)
 		{
-			if (queryCache.empty())
+			auto query = getOrCreateQuery(args);
+			if (!query)
 				return Rml::Variant{};
+
 			auto now = std::chrono::system_clock::now();
 			auto today = std::format("{:%Y-%m-%d}", now);
 
-			//Intentional copy
-			auto list = queryCache.back();
 			for (int i = 1; i < args.size(); i++)
 			{
 				transform t;
 				t.key = args[i].Get<std::string>();
 				t.op = transform::operation::startsWith;
 				t.value = today;
-				list.match(t);
+				query->match(t);
 			}
-			queryCache.emplace_back(std::move(list));
 			return Rml::Variant{ "Unresolved Query" };
 		}
 
-		static Rml::Variant transformCount(const Rml::VariantList&)
+		static Rml::Variant transformCount(const Rml::VariantList& args)
 		{
-			if (queryCache.empty())
+			auto query = getOrCreateQuery(args);
+			if (!query)
 				return Rml::Variant{};
-			auto& list = queryCache.back();
-			int count = static_cast<int>(list.filtered.size());
+
+			int count = static_cast<int>(query->filtered.size());
+			endQuery();
 			return Rml::Variant{ count };
 		}
 
-		static Rml::Variant transformMostRecent(const Rml::VariantList&)
+		static Rml::Variant transformMostRecent(const Rml::VariantList& args)
 		{
-			if (queryCache.empty())
+			auto query = getOrCreateQuery(args);
+			if (!query)
 				return Rml::Variant{};
-			auto& list = queryCache.back();
-			if (list.filtered.empty())
+
+			if (query->filtered.empty())
 			{
 				return Rml::Variant{};
 			}
-			auto mostRecent = std::ranges::max_element(list.filtered, [](const auto& a, const auto& b)
+			auto mostRecent = std::ranges::max_element(query->filtered, [](const auto& a, const auto& b)
 				{
 					return a->lastUpdate < b->lastUpdate;
 				});
@@ -183,46 +205,50 @@ namespace UI
 			std::tm tm = *std::localtime(&time_t);
 			std::string result(20, '\0');
 			std::strftime(result.data(), result.size(), "%F %T", &tm);
+			endQuery();
 			return Rml::Variant{ result };
 		}
 
 
 		static Rml::Variant saveQuery(const Rml::VariantList& args)
 		{
-			if (args.size() != 2 || queryCache.empty())
+			if (args.size() != 2 || !queryCache)
 				return Rml::Variant{};
-			auto name = args[1].Get<std::string>();
-			auto& list = queryCache.back();
-			queryStore[name] = list.filtered;
+			auto name = args[1].Get<std::string>();;
+			queryStore[name] = queryCache->filtered;
 			//Note that we don't want to provide output after saving the query, as we can therefore save from content
-			return Rml::Variant{};
+			endQuery();
+			return Rml::Variant{ "" };
 		}
 
 		static Rml::Variant loadQuery(const Rml::VariantList& args)
 		{
+			if (queryCache)
+				return Rml::Variant{};
 			if (args.size() != 1)
 				return Rml::Variant{};
 			auto name = args[0].Get<std::string>();
 			auto it = queryStore.tryGet(name);
 			if (!it)
 				return Rml::Variant{};
-			initCache(queryModel(*it));
+			queryCache = std::make_unique<queryModel>(*it);
 			return Rml::Variant{ "Unresolved Query" };
 		}
 
 		static Rml::Variant members(const Rml::VariantList& args)
 		{
-			if (queryCache.empty())
+			auto query = getOrCreateQuery(args);
+			if (!query)
 				return Rml::Variant{};
+
 			std::optional<std::string> formatter;
 			if (args.size() == 2)
 			{
 				formatter = args[1].Get<std::string>();
 			}
 
-			auto& list = queryCache.back();
 			std::vector<const api::member*> members;
-			for (const auto& card : list.filtered)
+			for (const auto& card : query->filtered)
 			{
 				for (auto member : card->members)
 				{
@@ -300,6 +326,9 @@ namespace UI
 		};
 
 		std::string syncLast;
+		std::string emptyQuery{ "Unresolved Query" };
+		std::vector<int> cardListIndicies;
+		std::vector<std::string> cardListNames;
 
 		model() = default;
 		//The UI holds a reference to the model, so we need to make sure it's not copied or moved.
@@ -309,11 +338,10 @@ namespace UI
 		model& operator=(model&&) = delete;
 		~model() = default;
 
-		keyValueLookup<std::string, std::vector<api::card>> cardLists;
 
 		void set(keyValueLookup<std::string, std::vector<api::card>>&& cards)
 		{
-			cardLists = std::move(cards);
+			queryModel::cardLists = std::move(cards);
 			queryModel::queryStore.clear();
 			syncLast = timeToString(std::chrono::system_clock::now());
 		}
@@ -330,25 +358,28 @@ namespace UI
 			constructor.RegisterArray<std::vector<api::card>>();
 
 			queryModel::bind(constructor);
-			static std::string emptyQuery{ "Unresolved Query" };
 			constructor.Bind("query", &emptyQuery);
+
+			cardListNames.clear();
+			cardListNames.resize(api.lists.size());
+			cardListIndicies.clear();
+			cardListIndicies.reserve(api.lists.size());
 
 			for (const auto& list : api.lists)
 			{
-				auto accessor = [list, lists = &cardLists](const Rml::VariantList&)
-					{
-						auto value = lists->tryGet(list.first);
-						if (!value)
-							return Rml::Variant{};
-						queryModel::initCache(*value);
-						return Rml::Variant{ "Unresolved Query" };
-					};
-
 				std::string name = list.first;
 				std::ranges::replace(name, ' ', '_');
 				//Remove any non-alphanumeric characters
 				name.erase(std::remove_if(name.begin(), name.end(), [](char c) { return !std::isalnum(static_cast<unsigned char>(c)) && c != '_'; }), name.end());
-				constructor.RegisterTransformFunc(name, accessor);
+
+				if (name.empty())
+					continue;
+
+				queryModel::cardLookup[static_cast<int>(cardListIndicies.size())] = list.first;
+				cardListNames.push_back(list.first);
+				cardListIndicies.push_back(static_cast<int>(cardListIndicies.size()));
+
+				constructor.Bind(name, &cardListIndicies.back());
 			}
 			model = constructor.GetModelHandle();
 		}

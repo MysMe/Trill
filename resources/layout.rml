@@ -29,10 +29,10 @@
 	</head>
 
 	<body data-model="model">
-		{{Bugs_And_Queries() | where('Priority==Hotfix', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Hotfixes')}}
-		{{Bugs_And_Queries() | where('Priority==Regular', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Regulars')}}
-		{{Bugs_And_Queries() | where('Priority==Low', 		'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Lows')}}
-		{{Bugs_And_Queries() | where('Priority==Very Low', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Very Lows')}}
+		{{Bugs_And_Queries | where('Priority==Hotfix', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Hotfixes')}}
+		{{Bugs_And_Queries | where('Priority==Regular', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Regulars')}}
+		{{Bugs_And_Queries | where('Priority==Low', 		'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Lows')}}
+		{{Bugs_And_Queries | where('Priority==Very Low', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Very Lows')}}
 
 		<div style="display: flex; justify-content: space-between; width: 100%; flex-wrap:wrap;">
 			<card style="background-color: #b10000;">
@@ -100,7 +100,7 @@
 					Resolved
 				</cardtitle>
 				<cardcontent>
-					{{Resolved() | today('Resolved At') | count}}
+					{{Resolved | today('Resolved At') | count}}
 				</cardcontent>
 				<cardsubtext>
 					Last Synced<br/>{{syncLast}}
@@ -112,7 +112,7 @@
 					On Troncbox Today
 				</cardtitle>
 				<cardcontent style="margin-top: 1rem;">
-					{{Todays_Troncbox_Legend() | members('initials')}}
+					{{Todays_Troncbox_Legend | members('initials')}}
 				</cardcontent>
 			</card>
 		</div>
