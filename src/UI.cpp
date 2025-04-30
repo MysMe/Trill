@@ -224,6 +224,8 @@ namespace UI
         keyValueLookup<std::string, std::vector<api::card>> allCards;
         for (const auto& list : apiData.lists)
         {
+            if (!api.isFilteredList(list.first))
+                continue;
 			auto cardsInList = api::getCardsInList(api, apiData, list.second);
             allCards[list.first] = std::move(cardsInList);
         }
