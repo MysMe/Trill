@@ -15,10 +15,11 @@ namespace config
 
 		static config load()
 		{
-			auto file = std::ifstream(constants::config_dir + "/config.txt");
+			std::string fileName = constants::config_dir + "/config.txt";
+			auto file = std::ifstream(fileName);
 			if (!file.is_open())
 			{
-				throw std::runtime_error("Could not open config file: " + constants::config_dir);
+				throw std::runtime_error("Could not open config file: " + fileName);
 			}
 
 			config config;
@@ -40,7 +41,7 @@ namespace config
 
 			if (config.boardName.empty())
 			{
-				throw std::runtime_error("No board name specified in config file: " + constants::config_dir);
+				throw std::runtime_error("No board name specified in config file: " + fileName);
 			}
 
 			return config;

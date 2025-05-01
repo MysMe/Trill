@@ -1,4 +1,4 @@
-add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release", "mode.releasedbg")
 add_rules("plugin.vsxmake.autoupdate")
 
 add_requires("curlpp master", "nlohmann_json", "osmanip", "glfw", "rmlui 6.0", "glad", "stb");
@@ -17,7 +17,7 @@ target("Trill")
     if is_mode("debug") then
         add_defines("PROJECT_DIR=\"$(projectdir)\"")
     else
-        add_defines("PROJECT_DIR=\"\"")
+        add_defines("PROJECT_DIR=\".\"")
         if is_plat("windows") then
             add_ldflags("-subsystem:windows")
         end
