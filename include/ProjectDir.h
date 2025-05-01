@@ -26,4 +26,7 @@ namespace constants
 
     const std::string avatar_dir = project_dir + "/avatars";
     const std::filesystem::path avatar_path = avatar_dir;
+
+	const std::string config_dir = project_dir + "/config";
+	const std::filesystem::path config_path = config_dir;
 }

@@ -12,17 +12,13 @@
 namespace api
 {
 
-
-
-
-    data getApiData(const requestHandler &api)
+    data getApiData(const requestHandler &api, const config::config& conf)
     {
 		//Get all boards for the user
         auto boards = api.get(urls::getAllBoards);
 
-		//Find the board with the name "Troncbox Development Support" - meaning this will only work with my specific board setup
-        auto boardIt = std::find_if(boards.begin(), boards.end(), [](const auto &board)
-                                    { return board["name"] == "Troncbox Development Support"; });
+        auto boardIt = std::find_if(boards.begin(), boards.end(), [&](const auto &board)
+                                    { return board["name"] == conf.boardName; });
         if (boardIt == boards.end())
         {
             throw std::runtime_error("Board not found");
@@ -82,7 +78,6 @@ namespace api
 				request.setOpt<curlpp::options::WriteStream>(&response);
 				request.perform();
 
-				response.flush();
 				response.close();
 				//Convert to TGA format
 				imgConv::convertPngToTga(pngFilename, tgaFilename);

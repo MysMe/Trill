@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "CustomFields.h"
+#include "Config.h"
 
 namespace api
 {
@@ -31,7 +32,7 @@ namespace api
 		std::vector<const member*> members;
     };
 
-    data getApiData(const requestHandler& api);
+    data getApiData(const requestHandler& api, const config::config& conf);
 
     std::vector<card> getCardsInList(const requestHandler& api, const api::data& data, const std::string& listId);
 }

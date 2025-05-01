@@ -203,12 +203,12 @@ namespace UI
         return result;
     }
 
-	void fetch(model& data, const requestHandler& api, const api::data& apiData)
+	void fetch(model& data, const requestHandler& api, const api::data& apiData, const config::config& conf)
     {
         keyValueLookup<std::string, std::vector<api::card>> allCards;
         for (const auto& list : apiData.lists)
         {
-            if (!api.isFilteredList(list.first))
+            if (!conf.listInFilter(list.first))
                 continue;
 			auto cardsInList = api::getCardsInList(api, apiData, list.second);
             allCards[list.first] = std::move(cardsInList);
@@ -229,13 +229,16 @@ namespace UI
     {
 		userSettings = settings::getSettings();
 
+        const auto config = config::config::load();
+        interactive = interactive || config.interactive;
+
         const auto keys = keys::loadKeys(constants::project_path / "keys/");
         const auto api = requestHandler(keys);
-        const auto apiData = api::getApiData(api);
+        const auto apiData = api::getApiData(api, config);
 
         model data;
 		//Initial fetch
-		fetch(data, api, apiData);
+		fetch(data, api, apiData, config);
 
         auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, interactive);
 		atScopeExit backendCleanUp([&] { Backend::Shutdown(); });
@@ -354,7 +357,7 @@ namespace UI
 			//If we haven't fetched in the last minute, fetch now
             if (eventResults.forceFetch || std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(60))
             {
-				fetch(data, api, apiData);
+				fetch(data, api, apiData, config);
 				dataModel.DirtyAllVariables();
 				lastFetch = std::chrono::system_clock::now();
             }

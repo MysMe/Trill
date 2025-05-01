@@ -1,0 +1,5 @@
+interactive=false
+board=Troncbox Development Support
+list=Bugs And Queries
+list=Resolved
+list=Today's Troncbox Legend
