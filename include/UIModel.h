@@ -193,6 +193,7 @@ namespace UI
 
 			if (query->filtered.empty())
 			{
+				endQuery();
 				return Rml::Variant{};
 			}
 			auto mostRecent = std::ranges::max_element(query->filtered, [](const auto& a, const auto& b)
@@ -214,7 +215,7 @@ namespace UI
 		{
 			if (args.size() != 2 || !queryCache)
 				return Rml::Variant{};
-			auto name = args[1].Get<std::string>();;
+			auto name = args[1].Get<std::string>();
 			queryStore[name] = queryCache->filtered;
 			//Note that we don't want to provide output after saving the query, as we can therefore save from content
 			endQuery();
