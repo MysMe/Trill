@@ -197,23 +197,7 @@ namespace UI
         }
         else
         {
-            // We arrive here when no priority keys are detected and the key was not consumed by the context. Check for shortcuts of lower priority.
-            if (key == Rml::Input::KI_R && key_modifier & Rml::Input::KM_CTRL)
-            {
-                for (int i = 0; i < context->GetNumDocuments(); i++)
-                {
-                    Rml::ElementDocument *document = context->GetDocument(i);
-                    const Rml::String &src = document->GetSourceURL();
-                    if (src.size() > 4 && src.substr(src.size() - 4) == ".rml")
-                    {
-                        document->ReloadStyleSheet();
-                    }
-                }
-            }
-            else
-            {
-                result = true;
-            }
+            result = true;
         }
 
         return result;
