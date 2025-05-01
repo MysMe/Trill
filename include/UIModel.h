@@ -11,17 +11,6 @@ namespace UI
 
 	struct model
 	{
-		static std::string timeToString(const std::optional<std::chrono::system_clock::time_point>& time)
-		{
-			if (!time.has_value())
-				return "";
-			auto time_t = std::chrono::system_clock::to_time_t(time.value());
-			std::tm tm = *std::localtime(&time_t);
-			std::string result(20, '\0');
-			std::strftime(result.data(), result.size(), "%F %T", &tm);
-			return result;
-		};
-
 		std::string syncLast;
 		std::vector<std::string> cardListNames;
 
@@ -36,8 +25,8 @@ namespace UI
 
 		void set(keyValueLookup<std::string, std::vector<api::card>>&& cards)
 		{
-			query::setCards(std::move(cards));
-			syncLast = timeToString(std::chrono::system_clock::now());
+			query::setCards(std::move(cards));    
+			syncLast = std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
 		}
 
 		void bind(Rml::Context* context, Rml::DataModelHandle& model, const api::data& api)

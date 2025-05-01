@@ -120,7 +120,6 @@ namespace api
 				if (ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S"))
 				{
 					auto lastActivity = std::chrono::system_clock::from_time_t(std::mktime(&tm));
-					value.lastActivity = lastActivityJson.get<std::string>();
 					value.lastUpdate = lastActivity;
 				}
 			}

@@ -24,7 +24,6 @@ namespace api
         std::string id;
         std::string name;
         std::string url;
-        std::string lastActivity;
         std::chrono::system_clock::time_point lastUpdate;
 
         keyValueLookup<std::string, std::string> customFields;

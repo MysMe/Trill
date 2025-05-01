@@ -164,12 +164,7 @@ namespace transforms
 				return a->lastUpdate < b->lastUpdate;
 			});
 		auto lastUpdate = (*mostRecent)->lastUpdate;
-		//Format the time to a string
-		auto time_t = std::chrono::system_clock::to_time_t(lastUpdate);
-		std::tm tm = *std::localtime(&time_t);
-		std::string result(20, '\0');
-		std::strftime(result.data(), result.size(), "%F %T", &tm);
-		return result;
+		return std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::floor<std::chrono::seconds>(lastUpdate));
 	}
 
 	std::optional<std::string> members(const queryModel& query, const Rml::VariantList& args)
