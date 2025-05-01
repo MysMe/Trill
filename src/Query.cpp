@@ -3,11 +3,15 @@
 
 using namespace query;
 
+using postLoadEvent = std::function<void(Rml::ElementDocument&)>;
+
 class queryCache
 {
 	std::optional<queryModel> queryCache;
 	keyValueLookup<std::string, std::vector<api::card*>> queryStore;
 	keyValueLookup<std::string, std::vector<api::card>> cardLists;
+
+	std::vector<postLoadEvent> postLoadEvents;
 
 public:
 	queryModel* getOrCreateQuery(const Rml::VariantList& args)
@@ -56,6 +60,20 @@ public:
 
 	void clearCache() { queryCache.reset(); }
 	void clearStore() { queryStore.clear(); }
+
+	void addPostLoadEvent(postLoadEvent&& event)
+	{
+		postLoadEvents.push_back(std::move(event));
+	}
+
+	void executePostLoad(Rml::ElementDocument& document)
+	{
+		for (auto& event : postLoadEvents)
+		{
+			event(document);
+		}
+		postLoadEvents.clear();
+	}
 };
 
 queryCache& cache()
@@ -225,6 +243,34 @@ namespace transforms
 		return result;
 	}
 
+	std::optional<std::string> singleProfilePictureId(const queryModel& query, const Rml::VariantList& args)
+	{
+		if (query.filtered.size() != 1)
+			return std::nullopt;
+		auto firstCard = query.filtered[0];
+		if (firstCard->members.size() != 1)
+			return std::nullopt;
+		auto firstMember = firstCard->members[0];
+		if (firstMember->profilePicturePath.empty())
+			return std::nullopt;
+		if (args.size() != 2)
+			return std::nullopt;
+
+		std::string path = firstMember->profilePicturePath;
+		std::string elementId = args[1].Get<std::string>();
+
+		cache().addPostLoadEvent([path, elementId](Rml::ElementDocument& document)
+			{
+				auto element = document.GetElementById(elementId);
+				if (element)
+				{
+					element->SetAttribute("src", path.c_str());
+				}
+			});
+
+		return std::nullopt;
+	}
+
 }
 
 namespace meta
@@ -268,6 +314,7 @@ void query::bind(Rml::DataModelConstructor& constructor)
 	bindQueryTransform(constructor, "count", transforms::count);
 	bindQueryTransform(constructor, "mostRecent", transforms::mostRecent);
 	bindQueryTransform(constructor, "members", transforms::members);
+	bindQueryTransform(constructor, "singleProfilePicture", transforms::singleProfilePictureId);
 
 	constructor.RegisterTransformFunc("as", meta::saveQuery);
 	constructor.RegisterTransformFunc("from", meta::loadQuery);
@@ -276,4 +323,9 @@ void query::bind(Rml::DataModelConstructor& constructor)
 void query::setCards(keyValueLookup<std::string, std::vector<api::card>>&& cards)
 {
 	cache().setCards(std::move(cards));
+}
+
+void query::postLoad(Rml::ElementDocument& document)
+{
+	cache().executePostLoad(document);
 }

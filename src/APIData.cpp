@@ -1,8 +1,19 @@
 #include "APIData.h"
 #include "Urls.h"
+#include "ProjectDir.h"
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Options.hpp>
+#include <curlpp/Easy.hpp>
+#include "ImgConv.h"
+
+
+
 
 namespace api
 {
+
+
+
 
     data getApiData(const requestHandler &api)
     {
@@ -32,12 +43,55 @@ namespace api
 
 		auto memberResponse = api.get(urls::getBoardMembers(boardId));
 
+		//Ensure the avatar directory exists
+		if (!std::filesystem::exists(constants::avatar_dir))
+		{
+			std::filesystem::create_directory(constants::avatar_dir);
+		}
+
 		keyValueLookup<std::string, member> members;
 		for (auto member : memberResponse)
 		{
 			auto memberId = member["id"].get<std::string>();
 			auto memberName = member["fullName"].get<std::string>();
 			members[memberId] = { memberName };
+
+			//If they don't have an avatar, skip them
+			if (member["avatarHash"].is_null())
+			{
+				continue;
+			}
+
+			//Check if we already have a copy of the member profile picture
+
+			std::string tgaFilename = std::format("{}/{}.tga", constants::avatar_dir, member["avatarHash"].get<std::string>());
+
+			if (!std::filesystem::exists(tgaFilename))
+			{
+				std::string pngFilename = std::format("{}/{}.png", constants::avatar_dir, member["avatarHash"].get<std::string>());
+				std::string fileUrl = std::format("{}/170.png", member["avatarUrl"].get<std::string>());
+				//Download the image
+				curlpp::Easy request;
+				request.setOpt<curlpp::options::Url>(fileUrl);
+
+				std::ofstream response(pngFilename, std::ios::out | std::ios::binary);
+				if (!response)
+				{
+					throw std::runtime_error("Failed to open file for writing: " + pngFilename);
+				}
+				request.setOpt<curlpp::options::WriteStream>(&response);
+				request.perform();
+
+				response.flush();
+				response.close();
+				//Convert to TGA format
+				imgConv::convertPngToTga(pngFilename, tgaFilename);
+
+				//Delete the PNG file
+				std::filesystem::remove(pngFilename);
+			}
+
+			members[memberId].profilePicturePath = tgaFilename;
 		}
 
         return {boardId, customFields, namedLists, members};

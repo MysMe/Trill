@@ -23,4 +23,7 @@ namespace constants
 	//The project directory is defined by the build type, with release builds being an empty string (aka the executable directory)
     const std::string project_dir = cleanFilePath(STRINGSTRING(PROJECT_DIR));
     const std::filesystem::path project_path = project_dir;
+
+    const std::string avatar_dir = project_dir + "/avatars";
+    const std::filesystem::path avatar_path = avatar_dir;
 }

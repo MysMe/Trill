@@ -29,6 +29,6 @@ namespace urls
 	//Gets all members for the board with the given ID
     inline std::string getBoardMembers(std::string_view boardId)
     {
-        return std::format("https://api.trello.com/1/boards/{}/members?fields=fullName,id", boardId);
+        return std::format("https://api.trello.com/1/boards/{}/members?fields=fullName,id,avatarUrl,avatarHash", boardId);
 	}
 }

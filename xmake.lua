@@ -1,7 +1,7 @@
 add_rules("mode.debug", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
 
-add_requires("curlpp master", "nlohmann_json", "osmanip", "glfw", "rmlui 5.1", "glad")
+add_requires("curlpp master", "nlohmann_json", "osmanip", "glfw", "rmlui 6.0", "glad", "stb");
 
 set_languages("c++23")
 
@@ -12,7 +12,7 @@ target("Trill")
     add_includedirs("include", "rmlui")
     add_headerfiles("include/**.h", "rmlui/*.h")
     add_files("src/*.cpp", "rmlui/*.cpp")
-    add_packages("curlpp", "nlohmann_json", "osmanip", "glfw", "rmlui", "glad")
+    add_packages("curlpp", "nlohmann_json", "osmanip", "glfw", "rmlui", "glad", "stb")
     set_warnings("allextra", "error")
     if is_mode("debug") then
         add_defines("PROJECT_DIR=\"$(projectdir)\"")

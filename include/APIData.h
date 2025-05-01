@@ -8,6 +8,7 @@ namespace api
     {
 		std::string fullName;
 		//Potential future prospect of having profile pictures
+        std::string profilePicturePath;
     };
 
 	//General keys for all API requests

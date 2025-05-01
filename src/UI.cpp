@@ -364,6 +364,7 @@ namespace UI
 
             // Prepare the backend for taking rendering commands from RmlUi and then render the context.
             Backend::BeginFrame(userSettings.transparent ? 0.f : 1.f);
+            query::postLoad(*contentDocument);
             context->Render();
             Backend::PresentFrame();
         }
