@@ -14,8 +14,9 @@ void logError(const T& e)
     std::cerr << e.what() << std::endl;
     // Write error to log file
     std::ofstream logFile("error.log", std::ios::app);
-    logFile << std::chrono::system_clock::now() << "#\t" << e.what() << std::endl;
-    //Add a small delay to avoid spamming the network
+	auto time = std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::system_clock::now());
+    logFile << time << "#\t" << e.what() << std::endl;
+    //Add a delay to avoid spamming the network
     std::this_thread::sleep_for(std::chrono::seconds(5));
 }
 

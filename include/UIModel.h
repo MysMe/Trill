@@ -39,6 +39,7 @@ namespace UI
 
 			query::bind(constructor);
 
+			//Memory stability is required here
 			cardListNames.clear();
 			cardListNames.reserve(api.lists.size());
 
@@ -53,7 +54,6 @@ namespace UI
 					continue;
 
 				cardListNames.push_back(list.first);
-
 				constructor.Bind(name, &cardListNames.back());
 			}
 			model = constructor.GetModelHandle();
