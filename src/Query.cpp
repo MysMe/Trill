@@ -11,7 +11,7 @@ class queryCache
 	keyValueLookup<std::string, std::vector<api::card*>> queryStore;
 	keyValueLookup<std::string, std::vector<api::card>> cardLists;
 
-	std::vector<postLoadEvent> postLoadEvents;
+	std::vector<postLoadEvent> preRenderEvents;
 
 public:
 	queryModel* getOrCreateQuery(const Rml::VariantList& args)
@@ -61,18 +61,18 @@ public:
 	void clearCache() { queryCache.reset(); }
 	void clearStore() { queryStore.clear(); }
 
-	void addPostLoadEvent(postLoadEvent&& event)
+	void addPreRenderEvent(postLoadEvent&& event)
 	{
-		postLoadEvents.push_back(std::move(event));
+		preRenderEvents.push_back(std::move(event));
 	}
 
-	void executePostLoad(Rml::ElementDocument& document)
+	void executePreRender(Rml::ElementDocument& document)
 	{
-		for (auto& event : postLoadEvents)
+		for (auto& event : preRenderEvents)
 		{
 			event(document);
 		}
-		postLoadEvents.clear();
+		preRenderEvents.clear();
 	}
 };
 
@@ -259,7 +259,7 @@ namespace transforms
 		std::string path = firstMember->profilePicturePath;
 		std::string elementId = args[1].Get<std::string>();
 
-		cache().addPostLoadEvent([path, elementId](Rml::ElementDocument& document)
+		cache().addPreRenderEvent([path, elementId](Rml::ElementDocument& document)
 			{
 				auto element = document.GetElementById(elementId);
 				if (element)
@@ -325,7 +325,7 @@ void query::setCards(keyValueLookup<std::string, std::vector<api::card>>&& cards
 	cache().setCards(std::move(cards));
 }
 
-void query::postLoad(Rml::ElementDocument& document)
+void query::preRender(Rml::ElementDocument& document)
 {
-	cache().executePostLoad(document);
+	cache().executePreRender(document);
 }

@@ -28,5 +28,5 @@ namespace query
 
 	void bind(Rml::DataModelConstructor& constructor);
 	void setCards(keyValueLookup<std::string, std::vector<api::card>>&& cards);
-	void postLoad(Rml::ElementDocument& document);
+	void preRender(Rml::ElementDocument& document);
 }
