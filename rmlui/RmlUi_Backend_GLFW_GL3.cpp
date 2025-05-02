@@ -163,7 +163,8 @@
 		 glfwGetWindowContentScale(data->window, &dp_ratio, nullptr);
  
 		 context->SetDimensions(window_size);
-		 context->SetDensityIndependentPixelRatio(dp_ratio);
+		 //Mysme note, I don't know why we overwrite the ratio here. This prevents us setting the ratio prior to rendering, so I'm stop that ;)
+		 //context->SetDensityIndependentPixelRatio(dp_ratio);
 	 }
  
 	 data->context = context;
