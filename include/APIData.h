@@ -34,5 +34,5 @@ namespace api
 
     data getApiData(const requestHandler& api, const config::config& conf);
 
-    std::vector<card> getCardsInList(const requestHandler& api, const api::data& data, const std::string& listId);
+    std::vector<card> getCardsInList(const requestHandler& api, const api::data& data, const std::pair<std::string, std::string>& list);
 }

@@ -6,7 +6,10 @@
 #include <curlpp/Easy.hpp>
 #include "ImgConv.h"
 
-
+struct apiLoggingSettings
+{
+	static constexpr inline std::string logName = "api";
+};
 
 
 namespace api
@@ -21,6 +24,7 @@ namespace api
                                     { return board["name"] == conf.boardName; });
         if (boardIt == boards.end())
         {
+			logger::logFor<apiLoggingSettings>().flogLn("Board not found: {}", conf.boardName);
             throw std::runtime_error("Board not found");
         }
         auto boardId = boardIt->at("id").get<std::string>();
@@ -29,13 +33,23 @@ namespace api
         auto lists = api.get(urls::getBoardLists(boardId));
 		keyValueLookup<std::string, std::string> namedLists;
 
+		logger::logFor<apiLoggingSettings>().flogLn("Found {} lists for board {}", lists.size(), conf.boardName);
 		for (auto list : lists)
 		{
 			namedLists[list["name"].get<std::string>()] = list["id"].get<std::string>();
+			logger::logFor<apiLoggingSettings>().flogLn("List: {}, ID: {}", list["name"].get<std::string>(), list["id"].get<std::string>());
 		}
 
 		//Get the custom fields for the board, this automatically infers field keys
 		auto customFields = fields::getCustomFields(api, boardId);
+		if (logger::logFor<apiLoggingSettings>().isEnabled())
+		{
+			for (const auto& field : customFields)
+			{
+				logger::logFor<apiLoggingSettings>().flogLn("Field: {}, ID: {}", field.first, field.second.fieldId);
+			}
+		}
+
 
 		auto memberResponse = api.get(urls::getBoardMembers(boardId));
 
@@ -55,6 +69,7 @@ namespace api
 			//If they don't have an avatar, skip them
 			if (member["avatarHash"].is_null())
 			{
+				logger::logFor<apiLoggingSettings>().flogLn("Member {} has no avatar.", memberName);
 				continue;
 			}
 
@@ -84,17 +99,26 @@ namespace api
 
 				//Delete the PNG file
 				std::filesystem::remove(pngFilename);
+
+				logger::logFor<apiLoggingSettings>().flogLn("Downloaded and converted avatar for member {} to {}", memberName, tgaFilename);
+			}
+			else
+			{
+				logger::logFor<apiLoggingSettings>().flogLn("Avatar for member {} already exists at {}", memberName, tgaFilename);
 			}
 
 			members[memberId].profilePicturePath = tgaFilename;
 		}
 
+		logger::logFor<apiLoggingSettings>().flush();
+
         return {boardId, customFields, namedLists, members};
     }
 
-	std::vector<card> getCardsInList(const requestHandler& api, const api::data& data, const std::string& listId)
+	std::vector<card> getCardsInList(const requestHandler& api, const api::data& data, const std::pair<std::string, std::string>& list)
 	{
-		auto cards = api.get(urls::getCardsInList(listId));
+		logger::logFor<apiLoggingSettings>().flogLn("Getting cards in list {}", list.first);
+		auto cards = api.get(urls::getCardsInList(list.second));
 
 		std::vector<card> result;
 
@@ -105,6 +129,8 @@ namespace api
 			value.id = current["id"].get<std::string>();
 			value.name = current["name"].get<std::string>();
 			value.url = current["url"].get<std::string>();
+
+			logger::logFor<apiLoggingSettings>().flogLn("\tCard: {}, ID: {}", value.name, value.id);
 
 			for (auto memberId : current["idMembers"])
 			{
@@ -126,14 +152,17 @@ namespace api
 				if (field == current["customFieldItems"].end())
 					continue;
 
+
 				if (fieldContent.type == fields::fieldType::date)
 				{
 					auto date = (*field)["value"]["date"].get<std::string>();
+					logger::logFor<apiLoggingSettings>().flogLn("\t\tField: {}, Value: {}", name, date);
 					value.customFields[name] = date;
 				}
 				else if (fieldContent.type == fields::fieldType::number)
 				{
 					auto num = (*field)["value"]["number"].get<std::string>();
+					logger::logFor<apiLoggingSettings>().flogLn("\t\tField: {}, Value: {}", name, num);
 					value.customFields[name] = num;
 				}
 				else if (fieldContent.type == fields::fieldType::list)
@@ -143,17 +172,20 @@ namespace api
 					auto match = fieldContent.keys.tryGet(valueId);
 					if (!match)
 						continue;
+					logger::logFor<apiLoggingSettings>().flogLn("\t\tField: {}, Value: {}", name, *match);
 					//Add both key and value to the card
 					value.customFields[name] = *match;
 				}
 				else if (fieldContent.type == fields::fieldType::checkbox)
 				{
 					auto isChecked = (*field)["value"]["checked"].get<std::string>();
+					logger::logFor<apiLoggingSettings>().flogLn("\t\tField: {}, Value: {}", name, isChecked);
 					value.customFields[name] = isChecked;
 				}
 				else if (fieldContent.type == fields::fieldType::text)
 				{
 					auto text = (*field)["value"]["text"].get<std::string>();
+					logger::logFor<apiLoggingSettings>().flogLn("\t\tField: {}, Value: {}", name, text);
 					value.customFields[name] = text;
 				}
 
@@ -170,11 +202,13 @@ namespace api
 				{
 					auto lastActivity = std::chrono::system_clock::from_time_t(std::mktime(&tm));
 					value.lastUpdate = lastActivity;
+					logger::logFor<apiLoggingSettings>().flogLn("\t\tLast activity: {}", std::chrono::system_clock::to_time_t(lastActivity));
 				}
 			}
 
 			result.emplace_back(std::move(value));
 		}
+		logger::logFor<apiLoggingSettings>().flush();
 		return result;
 	}
 }

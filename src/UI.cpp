@@ -210,7 +210,7 @@ namespace UI
         {
             if (!conf.listInFilter(list.first))
                 continue;
-			auto cardsInList = api::getCardsInList(api, apiData, list.second);
+			auto cardsInList = api::getCardsInList(api, apiData, list);
             allCards[list.first] = std::move(cardsInList);
         }
 		data.set(std::move(allCards));

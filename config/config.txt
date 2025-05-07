@@ -3,6 +3,7 @@ refreshSeconds=60
 
 log=error
 #log=query
+#log=api
 
 board=Troncbox Development Support
 list=Bugs And Queries
