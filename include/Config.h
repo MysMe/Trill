@@ -4,12 +4,14 @@
 #include "ProjectDir.h"
 #include <fstream>
 #include <stdexcept>
+#include <charconv>
 
 namespace config
 {
 	struct config
 	{
 		bool interactive = false;
+		int refreshSeconds = 60;
 		std::string boardName;
 		std::vector<std::string> listFilter;
 
@@ -37,6 +39,14 @@ namespace config
 					config.boardName = value;
 				else if (key == "list")
 					config.listFilter.push_back(value);
+				else if (key == "refreshSeconds")
+				{
+					auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), config.refreshSeconds);
+					if (ec != std::errc())
+					{
+						throw std::runtime_error("Invalid value for refreshSeconds in config file: " + fileName);
+					}
+				}
 			}
 
 			if (config.boardName.empty())

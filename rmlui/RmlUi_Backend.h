@@ -58,7 +58,7 @@ void* Initialize(const char* window_name, int width, int height, bool allow_resi
  
  // Polls and processes events from the current platform, and applies any relevant events to the provided RmlUi context and the key down callback.
  // @return False to indicate that the application should be closed.
- bool ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback = nullptr, bool power_save = false);
+ bool ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback = nullptr, bool power_save = false, double maxRefresh = 10.0);
  // Request application closure during the next event processing call.
  void RequestExit();
  

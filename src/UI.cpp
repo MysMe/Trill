@@ -312,7 +312,7 @@ namespace UI
         while (running)
         {
             //Handle input and window events.
-            running = Backend::ProcessEvents(context, &ProcessKeyDownShortcuts, true);
+            running = Backend::ProcessEvents(context, &ProcessKeyDownShortcuts, true, config.refreshSeconds);
 
 			//If we need to refresh the document, do so now
 			if (eventResults.refreshDocument)
@@ -354,8 +354,8 @@ namespace UI
 				userSettings = newSettings;
             }
 
-			//If we haven't fetched in the last minute, fetch now
-            if (eventResults.forceFetch || std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(60))
+			//If we haven't fetched recently, do so now
+            if (eventResults.forceFetch || std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(config.refreshSeconds))
             {
 				fetch(data, api, apiData, config);
 				dataModel.DirtyAllVariables();
@@ -367,7 +367,10 @@ namespace UI
 
             // Prepare the backend for taking rendering commands from RmlUi and then render the context.
             Backend::BeginFrame(userSettings.transparent ? 0.f : 1.f);
-            query::preRender(*contentDocument);
+            if (contentDocument)
+            {
+                query::preRender(*contentDocument);
+            }
             context->Render();
             Backend::PresentFrame();
         }

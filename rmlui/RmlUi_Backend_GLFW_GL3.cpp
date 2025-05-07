@@ -148,7 +148,7 @@
 	 return &data->render_interface;
  }
  
- bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save)
+ bool Backend::ProcessEvents(Rml::Context* context, KeyDownCallback key_down_callback, bool power_save, double refreshMax)
  {
 	 RMLUI_ASSERT(data && context);
  
@@ -171,7 +171,7 @@
 	 data->key_down_callback = key_down_callback;
  
 	 if (power_save)
-		 glfwWaitEventsTimeout(Rml::Math::Min(context->GetNextUpdateDelay(), 10.0));
+		 glfwWaitEventsTimeout(Rml::Math::Min(context->GetNextUpdateDelay(), refreshMax));
 	 else
 		 glfwPollEvents();
  

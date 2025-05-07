@@ -34,7 +34,7 @@
 		{{Bugs_And_Queries | where('Priority==Low', 		'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Lows')}}
 		{{Bugs_And_Queries | where('Priority==Very Low', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Very Lows')}}
 
-		<div style="display: flex; justify-content: space-between; width: 100%; flex-wrap:wrap;">
+		<div style="display: flex; justify-content: space-between; width: 100vw; flex-wrap:wrap;">
 			<card style="background-color: #b10000;">
 				<cardtitle>
 					Hotfixes
