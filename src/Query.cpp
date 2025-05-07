@@ -1,7 +1,13 @@
 #include "Query.h"
 #include "APIData.h"
+#include "Logging.h"
 
 using namespace query;
+
+struct queryLogSettings
+{
+	static constexpr inline std::string logName = "query";
+};
 
 using postLoadEvent = std::function<void(Rml::ElementDocument&)>;
 
@@ -21,22 +27,37 @@ public:
 			return &queryCache.value();
 		//No running query and we can't start one
 		if (args.empty())
+		{
+			logger::logFor<queryLogSettings>().logLn("Unable to start query, no args provided.");
 			return nullptr;
+		}
 		std::string name;
 		if (!args[0].GetInto(name))
+		{
+			logger::logFor<queryLogSettings>().logLn("Unable to start query, arg was not a string.");
 			return nullptr;
+		}
 		auto list = cardLists.tryGet(name);
 		if (!list)
+		{
+			logger::logFor<queryLogSettings>().flogLn("Unable to start query, list '{}' was not found.", name);
 			return nullptr;
+		}
 		queryCache.emplace(*list);
+		logger::logFor<queryLogSettings>().flog("New query on '{}': ", name);
 		return &queryCache.value();
 	}
 
 	void setCards(keyValueLookup<std::string, std::vector<api::card>>&& cards)
 	{
+		if (cardLists.size() != 0)
+		{
+			logger::logFor<queryLogSettings>().logLn("\n\n").flush();
+		}
 		clearCache();
 		clearStore();
 		cardLists = std::move(cards);
+		logger::logFor<queryLogSettings>().flogLn("Registered {} card list(s).", cardLists.size());
 	}
 
 	bool queryCached() const { return queryCache.has_value(); }
@@ -45,13 +66,24 @@ public:
 		if (queryCache)
 		{
 			queryStore[name] = queryCache->filtered;
+			logger::logFor<queryLogSettings>().flogLn("saved result as '{}'.", name);
 			return true;
 		}
+		logger::logFor<queryLogSettings>().flogLn("attempted to save query as '{}' but no query was running.", name);
 		return false;
 	}
 	std::vector<api::card*>* getQuery(std::string_view name)
 	{
-		return queryStore.tryGet(name);
+		auto result = queryStore.tryGet(name);
+		if (result)
+		{
+			logger::logFor<queryLogSettings>().flog("Query from '{}': ", name);
+		}
+		else
+		{
+			logger::logFor<queryLogSettings>().flogLn("Attempted to load query '{}' but it was not saved.", name);
+		}
+		return result;
 	}
 	void pushQuery(std::vector<api::card*>& cards)
 	{
@@ -120,11 +152,16 @@ namespace filters
 
 	bool where(queryModel& query, const Rml::VariantList& args)
 	{
+		logger::logFor<queryLogSettings>().log("where all: ");
 		for (int i = 1; i < args.size(); i++)
 		{
 			auto t = UI::transform::parse(args[i].Get<std::string>());
 			if (!t)
+			{
+				logger::logFor<queryLogSettings>().flogLn("Unable to parse transform '{}' ", args[i].Get<std::string>());
 				return false;
+			}
+			logger::logFor<queryLogSettings>().flog("'{}' ", args[i].Get<std::string>());
 			query.match(*t);
 		}
 		return true;
@@ -132,12 +169,17 @@ namespace filters
 
 	bool whereAny(queryModel& query, const Rml::VariantList& args)
 	{
+		logger::logFor<queryLogSettings>().log("where any: ");
 		std::vector<UI::transform> transforms;
 		for (int i = 1; i < args.size(); i++)
 		{
 			auto t = UI::transform::parse(args[i].Get<std::string>());
 			if (!t)
+			{
+				logger::logFor<queryLogSettings>().flogLn("Unable to parse transform '{}' ", args[i].Get<std::string>());
 				return false;
+			}
+			logger::logFor<queryLogSettings>().flog("'{}' ", args[i].Get<std::string>());
 			transforms.emplace_back(*t);
 		}
 		query.matchAny(transforms);
@@ -149,6 +191,8 @@ namespace filters
 	{
 		auto now = std::chrono::system_clock::now();
 		auto today = std::format("{:%Y-%m-%d}", now);
+
+		logger::logFor<queryLogSettings>().log("Matching today's date ");
 
 		for (int i = 1; i < args.size(); i++)
 		{
@@ -167,6 +211,7 @@ namespace transforms
 	std::optional<std::string> count(const queryModel& query, const Rml::VariantList&)
 	{
 		int count = static_cast<int>(query.filtered.size());
+		logger::logFor<queryLogSettings>().flogLn("Count: ({}).", count);
 		return std::to_string(count);
 	}
 
@@ -174,6 +219,7 @@ namespace transforms
 	{
 		if (query.filtered.empty())
 		{
+			logger::logFor<queryLogSettings>().logLn("Most recent: (No Cards).");
 			return std::nullopt;
 		}
 
@@ -182,7 +228,9 @@ namespace transforms
 				return a->lastUpdate < b->lastUpdate;
 			});
 		auto lastUpdate = (*mostRecent)->lastUpdate;
-		return std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::floor<std::chrono::seconds>(lastUpdate));
+		auto result = std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::floor<std::chrono::seconds>(lastUpdate));
+		logger::logFor<queryLogSettings>().flogLn("Most recent: ({}).", result);
+		return result;
 	}
 
 	std::optional<std::string> members(const queryModel& query, const Rml::VariantList& args)
@@ -206,7 +254,10 @@ namespace transforms
 		}
 
 		if (members.empty())
+		{
+			logger::logFor<queryLogSettings>().flogLn("No members found.");
 			return std::nullopt;
+		}
 
 		std::ranges::sort(members, [](auto a, auto b)
 			{
@@ -240,21 +291,35 @@ namespace transforms
 			result += format(member->fullName) + ", ";
 		}
 		result.resize(result.size() - 2); //Remove the last comma and space
+		logger::logFor<queryLogSettings>().flogLn("Members: ({}).", result);
 		return result;
 	}
 
 	std::optional<std::string> singleProfilePictureId(const queryModel& query, const Rml::VariantList& args)
 	{
 		if (query.filtered.size() != 1)
+		{
+			logger::logFor<queryLogSettings>().flogLn("Picture: Query does not have a single card.");
 			return std::nullopt;
+		}
 		auto firstCard = query.filtered[0];
 		if (firstCard->members.size() != 1)
+		{
+			logger::logFor<queryLogSettings>().flogLn("Picture: Query does not have exactly 1 member.");
 			return std::nullopt;
+		}
 		auto firstMember = firstCard->members[0];
 		if (firstMember->profilePicturePath.empty())
+		{
+			logger::logFor<queryLogSettings>().flogLn("Picture: Member does not have a profile picture.");
 			return std::nullopt;
+		}
 		if (args.size() != 2)
+		{
+			//Note that first argument is implied
+			logger::logFor<queryLogSettings>().flogLn("Picture: Expected 1 argument, got {}.", args.size());
 			return std::nullopt;
+		}
 
 		std::string path = firstMember->profilePicturePath;
 		std::string elementId = args[1].Get<std::string>();
@@ -268,6 +333,7 @@ namespace transforms
 				}
 			});
 
+		logger::logFor<queryLogSettings>().flogLn("Picture: Set profile picture for element '{}' to '{}'.", elementId, path);
 		return std::nullopt;
 	}
 
@@ -278,7 +344,10 @@ namespace meta
 	Rml::Variant saveQuery(const Rml::VariantList& args)
 	{
 		if (args.size() != 2 || !cache().queryCached())
+		{
+			logger::logFor<queryLogSettings>().logLn("Unable to save query, expected 1 arg and a query in progress.");
 			return Rml::Variant{};
+		}
 
 		auto name = args[1].Get<std::string>();
 		cache().saveQuery(name);
@@ -291,10 +360,16 @@ namespace meta
 	{
 		//Don't allow loading if we have a query in progress, as we can't load into it
 		if (cache().queryCached())
+		{
+			logger::logFor<queryLogSettings>().logLn("Unable to load query, query already in progress.");
 			return Rml::Variant{};
+		}
 
 		if (args.size() != 1)
+		{
+			logger::logFor<queryLogSettings>().logLn("Unable to load query, expected 1 arg.");
 			return Rml::Variant{};
+		}
 
 		auto name = args[0].Get<std::string>();
 		auto it = cache().getQuery(name);

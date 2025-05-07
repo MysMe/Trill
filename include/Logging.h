@@ -34,23 +34,28 @@ class logger
 			}
         }
 
+        void open()
+        {
+            if (!std::filesystem::exists(constants::log_dir))
+            {
+                std::filesystem::create_directory(constants::log_dir);
+            }
+
+            const auto filePath = constants::log_dir + "/" + T::logName + ".log";
+            output.open(filePath, std::ios::trunc);
+            if (!output)
+            {
+                throw std::runtime_error("Failed to open log file: " + filePath);
+            }
+        }
+
     public:
         loggerImpl(const std::vector<std::string>& enabledTypes)
         {
             enabled = std::ranges::contains(enabledTypes, T::logName);
             if (enabled)
             {
-                if (!std::filesystem::exists(constants::log_dir))
-                {
-                    std::filesystem::create_directory(constants::log_dir);
-                }
-
-                const auto filePath = constants::log_dir + "/" + T::logName + ".log";        
-                output.open(filePath, std::ios::app);
-                if (!output)
-                {
-                    throw std::runtime_error("Failed to open log file: " + filePath);
-                }
+                open();
             }
         }
 

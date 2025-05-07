@@ -2,6 +2,7 @@ interactive=false
 refreshSeconds=60
 
 log=error
+#log=query
 
 board=Troncbox Development Support
 list=Bugs And Queries
