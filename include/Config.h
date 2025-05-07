@@ -5,6 +5,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <charconv>
+#include "Logging.h"
 
 namespace config
 {
@@ -23,6 +24,8 @@ namespace config
 			{
 				throw std::runtime_error("Could not open config file: " + fileName);
 			}
+
+			std::vector<std::string> logTypes;
 
 			config config;
 			std::string line;
@@ -47,12 +50,16 @@ namespace config
 						throw std::runtime_error("Invalid value for refreshSeconds in config file: " + fileName);
 					}
 				}
+				else if (key == "log")
+					logTypes.push_back(value);
 			}
 
 			if (config.boardName.empty())
 			{
 				throw std::runtime_error("No board name specified in config file: " + fileName);
 			}
+
+			logger::setEnabledLogTypes(logTypes);
 
 			return config;
 		}

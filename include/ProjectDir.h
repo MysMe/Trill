@@ -29,4 +29,7 @@ namespace constants
 
 	const std::string config_dir = project_dir + "/config";
 	const std::filesystem::path config_path = config_dir;
+
+    const std::string log_dir = project_dir + "/logs";
+    const std::filesystem::path log_path = log_dir;
 }

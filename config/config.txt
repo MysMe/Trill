@@ -1,5 +1,8 @@
 interactive=false
 refreshSeconds=60
+
+log=error
+
 board=Troncbox Development Support
 list=Bugs And Queries
 list=Resolved

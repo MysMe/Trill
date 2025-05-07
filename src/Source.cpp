@@ -7,18 +7,12 @@
 #include <array>
 #include <ranges>
 #include <thread>
+#include "Logging.h"
 
-template <class T>
-void logError(const T& e)
+struct errorLogSettings
 {
-    std::cerr << e.what() << std::endl;
-    // Write error to log file
-    std::ofstream logFile("error.log", std::ios::app);
-	auto time = std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::system_clock::now());
-    logFile << time << "#\t" << e.what() << std::endl;
-    //Add a delay to avoid spamming the network
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-}
+	static constexpr inline std::string logName = "error";
+};
 
 int main(int argc, char *argv[])
 {
@@ -42,12 +36,12 @@ reset:
     }
     catch (const std::exception &e)
     {
-        logError(e);
+        logger::logFor<errorLogSettings>().logLn(e.what()).flush();
         goto reset;
     }
     catch (...)
     {
-        logError(std::runtime_error("Unknown error"));
+        logger::logFor<errorLogSettings>().logLn("Unknown error occurred");
         goto reset;
     }
     return 0;
