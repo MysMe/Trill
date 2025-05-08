@@ -29,10 +29,11 @@
 	</head>
 
 	<body data-model="model">
-		{{Bugs_And_Queries | where('Priority==Hotfix', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Hotfixes')}}
-		{{Bugs_And_Queries | where('Priority==Regular', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Regulars')}}
-		{{Bugs_And_Queries | where('Priority==Low', 		'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Lows')}}
-		{{Bugs_And_Queries | where('Priority==Very Low', 	'Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Very Lows')}}
+		{{Bugs_And_Queries | where('Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Relevant')}}
+		{{load | from('Relevant') | where('Priority==Hotfix') | as('Hotfixes')}}
+		{{load | from('Relevant') | where('Priority==Regular') | as('Regulars')}}
+		{{load | from('Relevant') | where('Priority==Low') | as('Lows')}}
+		{{load | from('Relevant') | where('Priority==Very Low') | as('Very Lows')}}
 
 		<div style="display: flex; justify-content: space-between; width: 100vw; flex-wrap:wrap;">
 			<card style="background-color: #b10000;">
@@ -40,13 +41,13 @@
 					Hotfixes
 				</cardtitle>
 				<cardcontent>
-					{{from('Hotfixes') | count}}
+					{{load | from('Hotfixes') | count}}
 				</cardcontent>
-				<cardunseentext data-if="from('Hotfixes') | where('Opsyte Status==Not Seen') | count" style="background-color: #640000;">
-					Unseen: {{from('Hotfixes') | where('Opsyte Status==Not Seen') | count}}
+				<cardunseentext data-if="load | from('Hotfixes') | where('Opsyte Status==Not Seen') | count" style="background-color: #640000;">
+					Unseen: {{load | from('Hotfixes') | where('Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
-				<cardsubtext data-if="(from('Hotfixes') | count) != 0 && (from('Hotfixes') | where('Opsyte Status==Not Seen') | count) == 0">
-					Most Recent<br/>{{from('Hotfixes') | mostRecent}}
+				<cardsubtext data-if="(load | from('Hotfixes') | count) != 0 && (load | from('Hotfixes') | where('Opsyte Status==Not Seen') | count) == 0">
+					Most Recent<br/>{{load | from('Hotfixes') | mostRecent}}
 				</cardsubtext>
 			</card>
 
@@ -55,13 +56,13 @@
 					Regular
 				</cardtitle>
 				<cardcontent>
-					{{from('Regulars') | count}}
+					{{load | from('Regulars') | count}}
 				</cardcontent>
-				<cardunseentext data-if="from('Regulars') | where('Opsyte Status==Not Seen') | count" style="background-color: #b26200;">
-					Unseen: {{from('Regulars') | where('Opsyte Status==Not Seen') | count}}
+				<cardunseentext data-if="load | from('Regulars') | where('Opsyte Status==Not Seen') | count" style="background-color: #b26200;">
+					Unseen: {{load | from('Regulars') | where('Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
-				<cardsubtext data-if="(from('Regulars') | count) != 0 && (from('Regulars') | where('Opsyte Status==Not Seen') | count) == 0">
-					Most Recent<br/>{{from('Regulars') | mostRecent}}
+				<cardsubtext data-if="(load | from('Regulars') | count) != 0 && (load | from('Regulars') | where('Opsyte Status==Not Seen') | count) == 0">
+					Most Recent<br/>{{load | from('Regulars') | mostRecent}}
 				</cardsubtext>
 			</card>
 
@@ -70,13 +71,13 @@
 					Low
 				</cardtitle>
 				<cardcontent>
-					{{from('Lows') | count}}
+					{{load | from('Lows') | count}}
 				</cardcontent>
-				<cardunseentext data-if="from('Lows') | where('Opsyte Status==Not Seen') | count" style="background-color: #151563;">
-					Unseen: {{from('Lows') | where('Opsyte Status==Not Seen') | count}}
+				<cardunseentext data-if="load | from('Lows') | where('Opsyte Status==Not Seen') | count" style="background-color: #151563;">
+					Unseen: {{load | from('Lows') | where('Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
-				<cardsubtext data-if="(from('Lows') | count) != 0 && (from('Lows') | where('Opsyte Status==Not Seen') | count) == 0">
-					Most Recent<br/>{{from('Lows') | mostRecent}}
+				<cardsubtext data-if="(load | from('Lows') | count) != 0 && (load | from('Lows') | where('Opsyte Status==Not Seen') | count) == 0">
+					Most Recent<br/>{{load | from('Lows') | mostRecent}}
 				</cardsubtext>
 			</card>
 
@@ -85,13 +86,13 @@
 					Very Low
 				</cardtitle>
 				<cardcontent>
-					{{from('Very Lows') | count}}
+					{{load | from('Very Lows') | count}}
 				</cardcontent>
-				<cardunseentext data-if="from('Very Lows') | where('Opsyte Status==Not Seen') | count" style="background-color: #006565;">
-					Unseen: {{from('Very Lows') | where('Opsyte Status==Not Seen') | count}}
+				<cardunseentext data-if="load | from('Very Lows') | where('Opsyte Status==Not Seen') | count" style="background-color: #006565;">
+					Unseen: {{load | from('Very Lows') | where('Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
-				<cardsubtext data-if="(from('Very Lows') | count) != 0 && (from('Very Lows') | where('Opsyte Status==Not Seen') | count) == 0">
-					Most Recent<br/>{{from('Very Lows') | mostRecent}}
+				<cardsubtext data-if="(load | from('Very Lows') | count) != 0 && (load | from('Very Lows') | where('Opsyte Status==Not Seen') | count) == 0">
+					Most Recent<br/>{{load | from('Very Lows') | mostRecent}}
 				</cardsubtext>
 			</card>
 

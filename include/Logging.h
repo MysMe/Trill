@@ -103,6 +103,18 @@ class logger
             return *this;
         }
 
+        loggerImpl& addEmptyLines(int count)
+        {
+            if (enabled)
+            {
+                for (int i = 0; i < count; ++i)
+                {
+                    output << '\n';
+                }
+            }
+            return *this;
+		}
+
         loggerImpl& flush()
         {
             if (enabled)

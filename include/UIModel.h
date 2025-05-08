@@ -13,6 +13,7 @@ namespace UI
 	{
 		std::string syncLast;
 		std::vector<std::string> cardListNames;
+		std::string queryLoadReference = "Loaded Query";
 
 		model() = default;
 		//The UI holds a reference to the model, so we need to make sure it's not copied or moved.
@@ -36,6 +37,7 @@ namespace UI
 				return;
 
 			constructor.Bind("syncLast", &syncLast);
+			constructor.Bind("load", &queryLoadReference);
 
 			query::bind(constructor);
 

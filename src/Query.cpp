@@ -52,7 +52,7 @@ public:
 	{
 		if (cardLists.size() != 0)
 		{
-			logger::logFor<queryLogSettings>().logLn("\n\n").flush();
+			logger::logFor<queryLogSettings>().addEmptyLines(2).flush();
 		}
 		clearCache();
 		clearStore();
@@ -66,24 +66,13 @@ public:
 		if (queryCache)
 		{
 			queryStore[name] = queryCache->filtered;
-			logger::logFor<queryLogSettings>().flogLn("saved result as '{}'.", name);
 			return true;
 		}
-		logger::logFor<queryLogSettings>().flogLn("attempted to save query as '{}' but no query was running.", name);
 		return false;
 	}
 	std::vector<api::card*>* getQuery(std::string_view name)
 	{
-		auto result = queryStore.tryGet(name);
-		if (result)
-		{
-			logger::logFor<queryLogSettings>().flog("Query from '{}': ", name);
-		}
-		else
-		{
-			logger::logFor<queryLogSettings>().flogLn("Attempted to load query '{}' but it was not saved.", name);
-		}
-		return result;
+		return queryStore.tryGet(name);
 	}
 	void pushQuery(std::vector<api::card*>& cards)
 	{
@@ -350,7 +339,8 @@ namespace meta
 		}
 
 		auto name = args[1].Get<std::string>();
-		cache().saveQuery(name);
+		if (!cache().saveQuery(name))
+			logger::logFor<queryLogSettings>().flogLn("Unable to save query '{}'.", name);
 		cache().clearCache();
 		//Note that we don't want to provide output after saving the query, as we can therefore save from content (aka, uniquely dont display "Unresolved Query")
 		return Rml::Variant{ "" };
@@ -365,13 +355,19 @@ namespace meta
 			return Rml::Variant{};
 		}
 
-		if (args.size() != 1)
+		if (args.size() != 2)
 		{
-			logger::logFor<queryLogSettings>().logLn("Unable to load query, expected 1 arg.");
+			logger::logFor<queryLogSettings>().logLn("Unable to load query, expected 2 args.");
 			return Rml::Variant{};
 		}
 
-		auto name = args[0].Get<std::string>();
+		if (args[0].Get<std::string>("") != "Loaded Query")
+		{
+			logger::logFor<queryLogSettings>().logLn("Unable to load query, expected first arg to be the load expression.");
+			return Rml::Variant{};
+		}
+
+		auto name = args[1].Get<std::string>();
 		auto it = cache().getQuery(name);
 		if (!it)
 			return Rml::Variant{};
