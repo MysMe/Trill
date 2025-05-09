@@ -216,8 +216,9 @@ namespace transforms
 			{
 				return a->lastUpdate < b->lastUpdate;
 			});
-		auto lastUpdate = (*mostRecent)->lastUpdate;
-		auto result = std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::floor<std::chrono::seconds>(lastUpdate));
+		auto lastUpdate = std::chrono::floor<std::chrono::seconds>((*mostRecent)->lastUpdate);
+		auto localTime = std::chrono::zoned_time{ std::chrono::current_zone(), lastUpdate };
+		auto result = std::format("{:%Y-%m-%d %H:%M:%S}", localTime.get_local_time());
 		logger::logFor<queryLogSettings>().flogLn("Most recent: ({}).", result);
 		return result;
 	}

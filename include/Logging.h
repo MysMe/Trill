@@ -15,7 +15,9 @@ class logger
 {
     static std::string getTime()
     {
-        return std::format("{:%Y-%m-%d %H:%M:%S}", std::chrono::system_clock::now());
+        auto now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+        auto localTime = std::chrono::zoned_time{ std::chrono::current_zone(), now };
+        return std::format("{:%Y-%m-%d %H:%M:%S}", localTime.get_local_time());
     }
 
     template <logSettings T>
