@@ -24,10 +24,7 @@ reset:
     firstRun = false;
 
     try
-    {
-        //Remove log file if one exists
-        std::remove("error.log");
-        
+    {      
 		constexpr std::string_view interactiveArgs[] = { "interactive", "i", "-i", "--interactive" };
         bool interactive = std::any_of(argv, argv + argc, [&interactiveArgs](const char *arg)
                                 { return std::ranges::find(interactiveArgs, arg) != std::end(interactiveArgs); });
