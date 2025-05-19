@@ -343,6 +343,7 @@ namespace meta
 		if (!cache().saveQuery(name))
 			logger::logFor<queryLogSettings>().flogLn("Unable to save query '{}'.", name);
 		cache().clearCache();
+		logger::logFor<queryLogSettings>().flogLn("Saved as '{}'.", name);
 		//Note that we don't want to provide output after saving the query, as we can therefore save from content (aka, uniquely dont display "Unresolved Query")
 		return Rml::Variant{ "" };
 	}
@@ -373,6 +374,7 @@ namespace meta
 		if (!it)
 			return Rml::Variant{};
 		cache().pushQuery(*it);
+		logger::logFor<queryLogSettings>().flog("From '{}'.", name);
 		return Rml::Variant{ "Unresolved Query" };
 	}
 }
