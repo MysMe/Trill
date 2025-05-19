@@ -43,7 +43,7 @@
 				<cardcontent>
 					{{load | from('Hotfixes') | count}}
 				</cardcontent>
-				<cardunseentext data-if="load | from('Hotfixes') | where('Opsyte Status==Not Seen') | count" style="background-color: #640000;">
+				<cardunseentext data-if="(load | from('Hotfixes') | where('Opsyte Status==Not Seen') | count) != 0" style="background-color: #640000;">
 					Unseen: {{load | from('Hotfixes') | where('Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
 				<cardsubtext data-if="(load | from('Hotfixes') | count) != 0 && (load | from('Hotfixes') | where('Opsyte Status==Not Seen') | count) == 0">
@@ -58,7 +58,7 @@
 				<cardcontent>
 					{{load | from('Regulars') | count}}
 				</cardcontent>
-				<cardunseentext data-if="load | from('Regulars') | where('Opsyte Status==Not Seen') | count" style="background-color: #b26200;">
+				<cardunseentext data-if="(load | from('Regulars') | where('Opsyte Status==Not Seen') | count) != 0" style="background-color: #b26200;">
 					Unseen: {{load | from('Regulars') | where('Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
 				<cardsubtext data-if="(load | from('Regulars') | count) != 0 && (load | from('Regulars') | where('Opsyte Status==Not Seen') | count) == 0">
@@ -73,7 +73,7 @@
 				<cardcontent>
 					{{load | from('Lows') | count}}
 				</cardcontent>
-				<cardunseentext data-if="load | from('Lows') | where('Opsyte Status==Not Seen') | count" style="background-color: #151563;">
+				<cardunseentext data-if="(load | from('Lows') | where('Opsyte Status==Not Seen') | count) != 0" style="background-color: #151563;">
 					Unseen: {{load | from('Lows') | where('Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
 				<cardsubtext data-if="(load | from('Lows') | count) != 0 && (load | from('Lows') | where('Opsyte Status==Not Seen') | count) == 0">
@@ -88,7 +88,7 @@
 				<cardcontent>
 					{{load | from('Very Lows') | count}}
 				</cardcontent>
-				<cardunseentext data-if="load | from('Very Lows') | where('Opsyte Status==Not Seen') | count" style="background-color: #006565;">
+				<cardunseentext data-if="(load | from('Very Lows') | where('Opsyte Status==Not Seen') | count) != 0" style="background-color: #006565;">
 					Unseen: {{load | from('Very Lows') | where('Opsyte Status==Not Seen') | count}}
 				</cardunseentext>
 				<cardsubtext data-if="(load | from('Very Lows') | count) != 0 && (load | from('Very Lows') | where('Opsyte Status==Not Seen') | count) == 0">
