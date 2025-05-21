@@ -204,6 +204,42 @@ namespace transforms
 		return std::to_string(count);
 	}
 
+	std::optional<std::string> sum(const queryModel& query, const Rml::VariantList& args)
+	{
+		if (query.filtered.empty())
+		{
+			logger::logFor<queryLogSettings>().logLn("Sum: (No Cards).");
+			return "0";
+		}
+		if (args.size() != 2)
+		{
+			logger::logFor<queryLogSettings>().flogLn("Sum: Expected 1 argument, got {}.", args.size() - 1);
+			return std::nullopt;
+		}
+		auto key = args[1].Get<std::string>();
+		int sum = 0;
+		for (const auto& card : query.filtered)
+		{
+			auto value = card->customFields[key];
+			if (value.empty())
+			{
+				//Assume empty values are 0
+				continue;
+			}
+
+			int valueInt = 0;
+			auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), valueInt);
+			if (ec != std::errc{})
+			{
+				logger::logFor<queryLogSettings>().flogLn("Sum: (Invalid value '{}').", value);
+				return std::nullopt;
+			}
+			sum += valueInt;
+		}
+		logger::logFor<queryLogSettings>().flogLn("Sum of {}: ({}).", key, sum);
+		return std::to_string(sum);
+	}
+
 	std::optional<std::string> mostRecent(const queryModel& query, const Rml::VariantList&)
 	{
 		if (query.filtered.empty())
@@ -386,6 +422,7 @@ void query::bind(Rml::DataModelConstructor& constructor)
 	bindQueryFilter(constructor, "today", filters::today);
 
 	bindQueryTransform(constructor, "count", transforms::count);
+	bindQueryTransform(constructor, "sum", transforms::sum);
 	bindQueryTransform(constructor, "mostRecent", transforms::mostRecent);
 	bindQueryTransform(constructor, "members", transforms::members);
 	bindQueryTransform(constructor, "singleProfilePicture", transforms::singleProfilePictureId);

@@ -101,7 +101,7 @@
 					Resolved
 				</cardtitle>
 				<cardcontent>
-					{{Resolved | today('Resolved At') | count}}
+					{{Resolved | today('Resolved At') | count}} ({{Resolved | today('Resolved At') | sum('Res Count')}})
 				</cardcontent>
 				<cardsubtext>
 					Last Synced<br/>{{syncLast}}
