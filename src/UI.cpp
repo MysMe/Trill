@@ -227,10 +227,10 @@ namespace UI
 
     void renderToUI(bool interactive)
     {
-		userSettings = settings::getSettings();
-
         const auto config = config::config::load();
         interactive = interactive || config.interactive;
+
+		userSettings = settings::getSettings();
 
         const auto keys = keys::loadKeys(constants::project_path / "keys/");
         const auto api = requestHandler(keys);

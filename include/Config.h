@@ -59,7 +59,7 @@ namespace config
 				throw std::runtime_error("No board name specified in config file: " + fileName);
 			}
 
-			logger::setEnabledLogTypes(logTypes);
+			logger::setEnabledLogTypes(std::move(logTypes));
 
 			return config;
 		}

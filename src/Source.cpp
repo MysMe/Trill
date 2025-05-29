@@ -16,6 +16,9 @@ struct errorLogSettings
 
 int main(int argc, char *argv[])
 {
+    //Always enable errors by default, that way if an error occurs when parsing the settings the log is generated
+    //If errors are then disabled in the config, they won't re-enable
+    logger::setEnabledLogTypes({ "error" });
     bool firstRun = true;
 reset:
     //When resetting, add a delay to avoid spamming the network

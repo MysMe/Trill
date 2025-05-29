@@ -139,8 +139,8 @@ public:
         return instance;
     }
 
-    static void setEnabledLogTypes(const std::vector<std::string>& logTypes)
+    static void setEnabledLogTypes(std::vector<std::string>&& logTypes)
     {
-        enabledLogTypes = logTypes;
+        enabledLogTypes = std::move(logTypes);
 	}
 };
