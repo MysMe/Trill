@@ -24,6 +24,12 @@ namespace query
 					return std::ranges::any_of(transforms, [&card](const auto& t) { return t(card); });
 				}) | std::ranges::to<std::vector<api::card*>>();
 		}
+
+		template <class Fn>
+		void filter(Fn&& fn)
+		{
+			filtered = filtered | std::views::filter(std::forward<Fn>(fn)) | std::ranges::to<std::vector<api::card*>>();
+		}
 	};
 
 	void bind(Rml::DataModelConstructor& constructor);

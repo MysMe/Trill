@@ -41,4 +41,15 @@ namespace fields
 
 		return fields;
 	}
+
+	labels getLabels(const requestHandler& api, std::string_view boardId)
+	{
+		auto labelResponse = api.get(urls::getLabels(boardId));
+		labels labelMap;
+		for (const auto& label : labelResponse)
+		{
+			labelMap[label["id"].get<std::string>()] = label["name"].get<std::string>();
+		}
+		return labelMap;
+	}
 }

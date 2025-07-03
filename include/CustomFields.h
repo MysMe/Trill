@@ -24,5 +24,8 @@ namespace fields
 
 	using customFields = keyValueLookup<std::string, dynamicField>;
 
+	using labels = keyValueLookup<std::string, std::string>;
+
 	customFields getCustomFields(const requestHandler& api, std::string_view boardId);
+	labels getLabels(const requestHandler& api, std::string_view boardId);
 }

@@ -50,6 +50,16 @@ namespace api
 			}
 		}
 
+		//Get the labels for the board
+		auto labels = fields::getLabels(api, boardId);
+		if (logger::logFor<apiLoggingSettings>().isEnabled())
+		{
+			for (const auto& label : labels)
+			{
+				logger::logFor<apiLoggingSettings>().flogLn("Label: {}, ID: {}", label.second, label.first);
+			}
+		}
+
 
 		auto memberResponse = api.get(urls::getBoardMembers(boardId));
 
@@ -112,7 +122,7 @@ namespace api
 
 		logger::logFor<apiLoggingSettings>().flush();
 
-        return {boardId, customFields, namedLists, members};
+        return {boardId, customFields, labels, namedLists, members};
     }
 
 	std::vector<card> getCardsInList(const requestHandler& api, const api::data& data, const std::pair<std::string, std::string>& list)
@@ -191,6 +201,19 @@ namespace api
 
 			}
 
+			//Add any labels
+			if (!current["idLabels"].is_null())
+			{
+				for (const auto& labelId : current["idLabels"])
+				{
+					auto label = data.labels.tryGet(labelId.get<std::string>());
+					if (label)
+					{
+						logger::logFor<apiLoggingSettings>().flogLn("\t\tLabel: {}", *label);
+						value.labels.push_back(*label);
+					}
+				}
+			}
 
 			auto lastActivityJson = current["dateLastActivity"];
 			if (!lastActivityJson.is_null())

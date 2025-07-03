@@ -17,13 +17,19 @@ namespace urls
 	//Gets all cards for the list with the given ID
     inline std::string getCardsInList(std::string_view listId)
     {
-        return std::format("https://api.trello.com/1/lists/{}/cards?fields=name,dateLastActivity,url,idMembers&customFieldItems=true", listId);
+        return std::format("https://api.trello.com/1/lists/{}/cards?fields=name,dateLastActivity,url,idMembers,idLabels&customFieldItems=true", listId);
     }
 
 	//Gets the custom fields for the board with the given ID
     inline std::string getCustomFields(std::string_view boardId)
     {
         return std::format("https://api.trello.com/1/boards/{}/customFields", boardId);
+    }
+
+    //Gets the labels for the board with the given ID
+    inline std::string getLabels(std::string_view boardId)
+    {
+        return std::format("https://api.trello.com/1/boards/{}/labels", boardId);
     }
 
 	//Gets all members for the board with the given ID

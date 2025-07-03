@@ -17,6 +17,7 @@ namespace api
     {
         std::string boardId;
 		fields::customFields customFields;
+		fields::labels labels;
         keyValueLookup<std::string, std::string> lists;
         keyValueLookup<std::string, member> members;
     };
@@ -29,6 +30,7 @@ namespace api
         std::chrono::system_clock::time_point lastUpdate;
 
         keyValueLookup<std::string, std::string> customFields;
+		std::vector<std::string> labels;
 		std::vector<const member*> members;
     };
 

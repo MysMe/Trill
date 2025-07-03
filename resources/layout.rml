@@ -29,7 +29,7 @@
 	</head>
 
 	<body data-model="model">
-		{{Bugs_And_Queries | where('Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | as('Relevant')}}
+		{{Bugs_And_Queries | where('Opsyte Status!=Blocked', 'Opsyte Status!=Needs Additional Info', 'Opsyte Status!=Awaiting Response', 'Opsyte Status!=Deferred') | withoutLabel('Needs Description') | as('Relevant')}}
 		{{load | from('Relevant') | where('Priority==Hotfix') | as('Hotfixes')}}
 		{{load | from('Relevant') | where('Priority==Regular') | as('Regulars')}}
 		{{load | from('Relevant') | where('Priority==Low') | as('Lows')}}

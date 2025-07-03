@@ -193,6 +193,54 @@ namespace filters
 		}
 		return true;
 	}
+
+	bool withLabel(queryModel& query, const Rml::VariantList& args)
+	{
+		if (args.size() < 2)
+		{
+			logger::logFor<queryLogSettings>().flogLn("withLabel: Expected at least 1 argument");
+			return false;
+		}
+		std::vector<std::string> labels;
+		for (int i = 1; i < args.size(); i++)
+		{
+			auto label = args[i].Get<std::string>();
+			labels.push_back(label);
+		}
+		logger::logFor<queryLogSettings>().flogLn("withLabel: ({}).", labels.size());
+		query.filter([&labels](const api::card* card)
+			{
+				return std::ranges::any_of(card->labels, [&labels](const auto& label) -> bool
+					{
+						return std::ranges::contains(labels, label);
+					});
+			});
+		return true;
+	}
+
+	bool withoutLabel(queryModel& query, const Rml::VariantList& args)
+	{
+		if (args.size() < 2)
+		{
+			logger::logFor<queryLogSettings>().flogLn("withoutLabel: Expected at least 1 argument");
+			return false;
+		}
+		std::vector<std::string> labels;
+		for (int i = 1; i < args.size(); i++)
+		{
+			auto label = args[i].Get<std::string>();
+			labels.push_back(label);
+		}
+		logger::logFor<queryLogSettings>().flogLn("withoutLabel: ({}).", labels.size());
+		query.filter([&labels](const api::card* card)
+			{
+				return std::ranges::none_of(card->labels, [&labels](const auto& label) -> bool
+					{
+						return std::ranges::contains(labels, label);
+					});
+			});
+		return true;
+	}
 }
 
 namespace transforms
@@ -420,6 +468,8 @@ void query::bind(Rml::DataModelConstructor& constructor)
 	bindQueryFilter(constructor, "where", filters::where);
 	bindQueryFilter(constructor, "whereAny", filters::whereAny);
 	bindQueryFilter(constructor, "today", filters::today);
+	bindQueryFilter(constructor, "withLabel", filters::withLabel);
+	bindQueryFilter(constructor, "withoutLabel", filters::withoutLabel);
 
 	bindQueryTransform(constructor, "count", transforms::count);
 	bindQueryTransform(constructor, "sum", transforms::sum);
