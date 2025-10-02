@@ -216,6 +216,15 @@ namespace UI
 		data.set(std::move(allCards));
     }
 
+    void ensureTopmost(GLFWwindow* window)
+    {
+        #ifdef _WIN32
+        auto hwnd = glfwGetWin32Window(window);
+        SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        #endif
+    }
+
+
 	//Use this to ensure the function is called when the scope is exited
     template <class Fn>
     struct atScopeExit
@@ -364,6 +373,8 @@ namespace UI
 
             // Always update the context before rendering.
             context->Update();
+
+            ensureTopmost(window);
 
             // Prepare the backend for taking rendering commands from RmlUi and then render the context.
             Backend::BeginFrame(userSettings.transparent ? 0.f : 1.f);
