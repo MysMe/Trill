@@ -216,7 +216,7 @@ namespace UI
 		data.set(std::move(allCards));
     }
 
-    void ensureTopmost(GLFWwindow* window)
+    void ensureTopmost([[maybe_unused]] GLFWwindow* window)
     {
         #ifdef _WIN32
         auto hwnd = glfwGetWin32Window(window);

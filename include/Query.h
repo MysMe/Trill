@@ -8,27 +8,35 @@ namespace query
 	{
 		std::vector<api::card*> filtered;
 
+		static std::vector<api::card*> convert(auto range)
+		{
+			std::vector<api::card*> result;
+			for (auto card : range)
+				result.push_back(card);
+			return result;
+		}
+
 		queryModel() = default;
-		queryModel(std::vector<api::card>& cards) : filtered(cards | std::views::transform([](auto& card) { return &card; }) | std::ranges::to<std::vector<api::card*>>()) {}
+		queryModel(std::vector<api::card>& cards) : filtered(convert(cards | std::views::transform([](auto& card) { return &card; }))) {}
 		queryModel(const std::vector<api::card*>& cards) : filtered(cards) {}
 
 		void match(const UI::transform& t)
 		{
-			filtered = filtered | std::views::filter(t) | std::ranges::to<std::vector<api::card*>>();
+			filtered = convert(filtered | std::views::filter(t));
 		}
 
 		void matchAny(std::span<const UI::transform> transforms)
 		{
-			filtered = filtered | std::views::filter([transforms](const auto& card)
+			filtered = convert(filtered | std::views::filter([transforms](const auto& card)
 				{
 					return std::ranges::any_of(transforms, [&card](const auto& t) { return t(card); });
-				}) | std::ranges::to<std::vector<api::card*>>();
+				}));
 		}
 
 		template <class Fn>
 		void filter(Fn&& fn)
 		{
-			filtered = filtered | std::views::filter(std::forward<Fn>(fn)) | std::ranges::to<std::vector<api::card*>>();
+			filtered = convert(filtered | std::views::filter(std::forward<Fn>(fn)));
 		}
 	};
 

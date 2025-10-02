@@ -142,7 +142,7 @@ namespace filters
 	bool where(queryModel& query, const Rml::VariantList& args)
 	{
 		logger::logFor<queryLogSettings>().log("where all: ");
-		for (int i = 1; i < args.size(); i++)
+		for (std::size_t i = 1; i < args.size(); i++)
 		{
 			auto t = UI::transform::parse(args[i].Get<std::string>());
 			if (!t)
@@ -160,7 +160,7 @@ namespace filters
 	{
 		logger::logFor<queryLogSettings>().log("where any: ");
 		std::vector<UI::transform> transforms;
-		for (int i = 1; i < args.size(); i++)
+		for (std::size_t i = 1; i < args.size(); i++)
 		{
 			auto t = UI::transform::parse(args[i].Get<std::string>());
 			if (!t)
@@ -179,11 +179,20 @@ namespace filters
 	bool today(queryModel& query, const Rml::VariantList& args)
 	{
 		auto now = std::chrono::system_clock::now();
-		auto today = std::format("{:%Y-%m-%d}", now);
+		std::time_t t = std::chrono::system_clock::to_time_t(now);
+		std::tm tm;
+#if defined(_WIN32) || defined(_WIN64)
+		localtime_s(&tm, &t);
+#else
+		localtime_r(&t, &tm);
+#endif
+		char today[11];
+		std::strftime(today, sizeof(today), "%Y-%m-%d", &tm);
+		std::string todayStr(today);
 
 		logger::logFor<queryLogSettings>().log("Matching today's date ");
 
-		for (int i = 1; i < args.size(); i++)
+		for (std::size_t i = 1; i < args.size(); i++)
 		{
 			UI::transform t;
 			t.key = args[i].Get<std::string>();
@@ -202,7 +211,7 @@ namespace filters
 			return false;
 		}
 		std::vector<std::string> labels;
-		for (int i = 1; i < args.size(); i++)
+		for (std::size_t i = 1; i < args.size(); i++)
 		{
 			auto label = args[i].Get<std::string>();
 			labels.push_back(label);
@@ -226,7 +235,7 @@ namespace filters
 			return false;
 		}
 		std::vector<std::string> labels;
-		for (int i = 1; i < args.size(); i++)
+		for (std::size_t i = 1; i < args.size(); i++)
 		{
 			auto label = args[i].Get<std::string>();
 			labels.push_back(label);
@@ -296,15 +305,23 @@ namespace transforms
 			return std::nullopt;
 		}
 
-		auto mostRecent = std::ranges::max_element(query.filtered, [](const auto& a, const auto& b)
-			{
-				return a->lastUpdate < b->lastUpdate;
-			});
-		auto lastUpdate = std::chrono::floor<std::chrono::seconds>((*mostRecent)->lastUpdate);
-		auto localTime = std::chrono::zoned_time{ std::chrono::current_zone(), lastUpdate };
-		auto result = std::format("{:%Y-%m-%d %H:%M:%S}", localTime.get_local_time());
-		logger::logFor<queryLogSettings>().flogLn("Most recent: ({}).", result);
-		return result;
+				auto mostRecent = std::ranges::max_element(query.filtered, [](const auto& a, const auto& b)
+					{
+						return a->lastUpdate < b->lastUpdate;
+					});
+				auto lastUpdate = std::chrono::floor<std::chrono::seconds>((*mostRecent)->lastUpdate);
+				std::time_t t = std::chrono::system_clock::to_time_t(std::chrono::time_point_cast<std::chrono::system_clock::duration>(lastUpdate));
+				std::tm tm;
+		#if defined(_WIN32) || defined(_WIN64)
+				localtime_s(&tm, &t);
+		#else
+				localtime_r(&t, &tm);
+		#endif
+				char buffer[20];
+				std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &tm);
+				std::string result(buffer);
+				logger::logFor<queryLogSettings>().flogLn("Most recent: ({}).", result);
+				return result;
 	}
 
 	std::optional<std::string> members(const queryModel& query, const Rml::VariantList& args)

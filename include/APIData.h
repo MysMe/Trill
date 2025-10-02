@@ -7,6 +7,10 @@ namespace api
 {
     struct member
     {
+        member() = default;
+        member(std::string name) : fullName(std::move(name)) {}
+        member(std::string name, std::string profilePicturePath) : fullName(std::move(name)), profilePicturePath(std::move(profilePicturePath)) {}
+
 		std::string fullName;
 		//Potential future prospect of having profile pictures
         std::string profilePicturePath;

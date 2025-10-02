@@ -5,6 +5,7 @@
 #include <ranges>
 #include <list>
 #include "Query.h"
+#include "Logging.h"
 
 namespace UI
 {
@@ -27,9 +28,7 @@ namespace UI
 		void set(keyValueLookup<std::string, std::vector<api::card>>&& cards)
 		{
 			query::setCards(std::move(cards));
-			auto now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
-			auto localTime = std::chrono::zoned_time{ std::chrono::current_zone(), now };
-			syncLast = std::format("{:%Y-%m-%d %H:%M:%S}", localTime.get_local_time());
+			syncLast = logger::getTime();
 		}
 
 		void bind(Rml::Context* context, Rml::DataModelHandle& model, const api::data& api)

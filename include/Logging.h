@@ -13,13 +13,6 @@ concept logSettings = requires(T t) {
 
 class logger
 {
-    static std::string getTime()
-    {
-        auto now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
-        auto localTime = std::chrono::zoned_time{ std::chrono::current_zone(), now };
-        return std::format("{:%Y-%m-%d %H:%M:%S}", localTime.get_local_time());
-    }
-
     template <logSettings T>
     class loggerImpl
     {
@@ -132,6 +125,21 @@ class logger
     static inline std::vector<std::string> enabledLogTypes;
 
 public:
+    static std::string getTime()
+    {
+        auto now = std::chrono::system_clock::now();
+        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+        std::tm local_tm{};
+#if defined(_WIN32) || defined(_WIN64)
+        localtime_s(&local_tm, &now_c);
+#else
+        localtime_r(&now_c, &local_tm);
+#endif
+        char buffer[20];
+        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &local_tm);
+        return std::string(buffer);
+    }
+
 	template <logSettings T>
     static loggerImpl<T> logFor()
     {
