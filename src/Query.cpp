@@ -194,11 +194,11 @@ namespace filters
 
 		for (std::size_t i = 1; i < args.size(); i++)
 		{
-			UI::transform t;
-			t.key = args[i].Get<std::string>();
-			t.op = UI::transform::operation::startsWith;
-			t.value = today;
-			query.match(t);
+			UI::transform tr;
+			tr.key = args[i].Get<std::string>();
+			tr.op = UI::transform::operation::startsWith;
+			tr.value = today;
+			query.match(tr);
 		}
 		return true;
 	}

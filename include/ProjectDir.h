@@ -24,6 +24,9 @@ namespace constants
     const std::string project_dir = cleanFilePath(STRINGSTRING(PROJECT_DIR));
     const std::filesystem::path project_path = project_dir;
 
+    const std::string resource_dir = project_dir + "/resources";
+    const std::filesystem::path resource_path = resource_dir;
+
     const std::string avatar_dir = project_dir + "/avatars";
     const std::filesystem::path avatar_path = avatar_dir;
 

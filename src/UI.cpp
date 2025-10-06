@@ -293,10 +293,8 @@ namespace UI
         // The RmlUi debugger is optional but very useful. Try it by pressing 'F8' after starting this sample.
         Rml::Debugger::Initialise(context);
 
-        // Load fonts
-        auto resourcesDirectory = constants::project_path / "resources";
-        // Iterate all ttfs in resources directory
-        for (const auto &entry : std::filesystem::directory_iterator(resourcesDirectory))
+        // Load fonts by iterating all ttfs in resources directory
+        for (const auto &entry : std::filesystem::directory_iterator(constants::resource_path))
         {
             if (entry.path().extension() == ".ttf")
             {
@@ -304,10 +302,12 @@ namespace UI
             }
         }
 
+        const std::string layoutPath = (constants::resource_path / "layout.rml").string();
+
 		Rml::DataModelHandle dataModel;
 		data.bind(context, dataModel, apiData);
 
-		contentDocument = context->LoadDocument((resourcesDirectory / "layout.rml").string());
+		contentDocument = context->LoadDocument(layoutPath);
 		if (contentDocument)
         {
             contentDocument->Show();
@@ -328,7 +328,7 @@ namespace UI
 			{
 				//Unload and reload the document
                 contentDocument->Close();
-				contentDocument = context->LoadDocument((resourcesDirectory / "layout.rml").string());
+				contentDocument = context->LoadDocument(layoutPath);
 				if (contentDocument)
 				{
 					contentDocument->Show();
