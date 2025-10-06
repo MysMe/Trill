@@ -31,6 +31,12 @@ namespace config
 			std::string line;
 			while (std::getline(file, line))
 			{
+				#ifndef _WIN32
+				//Remove carriage return if present (for files created on Windows)
+				if (!line.empty() && line.back() == '\r') 
+					line.pop_back();
+				#endif
+				
 				if (line.empty() || line[0] == '#') continue; // Skip empty lines and comments
 				auto delimiterPos = line.find('=');
 				if (delimiterPos == std::string::npos) continue; // Skip invalid lines
