@@ -413,6 +413,10 @@ namespace transforms
 		}
 
 		std::string path = firstMember->profilePicturePath;
+		#ifndef _WIN32
+			//Ensure this is a relative path
+			path.insert(path.cbegin(), '/');
+		#endif
 		std::string elementId = args[1].Get<std::string>();
 
 		cache().addPreRenderEvent([path, elementId](Rml::ElementDocument& document)
