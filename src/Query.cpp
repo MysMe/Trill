@@ -6,7 +6,7 @@ using namespace query;
 
 struct queryLogSettings
 {
-	static constexpr inline std::string logName = "query";
+	static constexpr inline auto logName = "query";
 };
 
 using postLoadEvent = std::function<void(Rml::ElementDocument&)>;

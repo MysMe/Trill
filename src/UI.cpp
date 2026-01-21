@@ -203,8 +203,37 @@ namespace UI
         return result;
     }
 
-	void fetch(model& data, const requestHandler& api, const api::data& apiData, const config::config& conf)
-    {
+    //Determines whether the main window should be shown based on the configured
+    //'showUserRules' and the current set of cards. If 'showUserRules' is empty,
+    //no filtering is applied and the window is always displayed (returns true).
+	bool shouldDisplayWindow(const config::config& conf, const keyValueLookup<std::string, std::vector<api::card>>& cards)
+	{
+		if (conf.showUserRules.empty())
+			return true;
+
+		for (const auto& rule : conf.showUserRules)
+		{
+			auto listCards = cards.tryGet(rule.listName);
+            if (!listCards)
+                continue;
+
+			for (const auto& card : *listCards)
+			{
+				for (const auto member : card.members)
+				{
+					if (member && member->fullName == rule.userName)
+					{
+                        return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	bool fetch(model& data, const requestHandler& api, const api::data& apiData, const config::config& conf)
+	{
         keyValueLookup<std::string, std::vector<api::card>> allCards;
         for (const auto& list : apiData.lists)
         {
@@ -213,8 +242,11 @@ namespace UI
 			auto cardsInList = api::getCardsInList(api, apiData, list);
             allCards[list.first] = std::move(cardsInList);
         }
+
+		bool displayWindow = shouldDisplayWindow(conf, allCards);
 		data.set(std::move(allCards));
-    }
+		return displayWindow;
+	}
 
     void ensureTopmost([[maybe_unused]] GLFWwindow* window)
     {
@@ -245,9 +277,9 @@ namespace UI
         const auto api = requestHandler(keys);
         const auto apiData = api::getApiData(api, config);
 
-        model data;
+		model data;
 		//Initial fetch
-		fetch(data, api, apiData, config);
+		bool displayWindow = fetch(data, api, apiData, config);
 
         auto windowPtr = Backend::Initialize("Trill", userSettings.window_width, userSettings.window_height, true, interactive);
 		atScopeExit backendCleanUp([&] { Backend::Shutdown(); });
@@ -259,7 +291,6 @@ namespace UI
             ShowWindow(hwnd, SW_HIDE);
 			//Floating, unclickable, undecorated, untabble, and always on top window
             SetWindowLong(hwnd, GWL_EXSTYLE, WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW);
-            ShowWindow(hwnd, SW_SHOW);
         }
 #endif
 
@@ -274,6 +305,16 @@ namespace UI
         //Set window position
         glfwSetWindowPos(window, userSettings.window_x, userSettings.window_y);
 		glfwSetWindowOpacity(window, userSettings.opacity);
+
+		//Initial show/hide of the window
+        if (displayWindow)
+        {
+            glfwShowWindow(window);
+		}
+        else
+        {
+            glfwHideWindow(window);
+		}
 
         // Install the custom interfaces constructed by the backend before initializing RmlUi.
         Rml::SetSystemInterface(Backend::GetSystemInterface());
@@ -364,12 +405,22 @@ namespace UI
             }
 
 			//If we haven't fetched recently, do so now
-            if (eventResults.forceFetch || std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(config.refreshSeconds))
-            {
-				fetch(data, api, apiData, config);
+			if (eventResults.forceFetch || std::chrono::system_clock::now() - lastFetch > std::chrono::seconds(config.refreshSeconds))
+			{
+				bool newDisplayWindow = fetch(data, api, apiData, config);
+                if (displayWindow != newDisplayWindow)
+                {
+					//Avoid repeatedly showing and hiding the window if the condition
+					displayWindow = newDisplayWindow;
+
+					if (displayWindow)
+                        glfwShowWindow(window);
+                    else
+                        glfwHideWindow(window);
+                }
 				dataModel.DirtyAllVariables();
 				lastFetch = std::chrono::system_clock::now();
-            }
+			}
 
             // Always update the context before rendering.
             context->Update();

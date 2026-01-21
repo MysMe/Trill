@@ -14,7 +14,7 @@
 
 struct errorLogSettings
 {
-	static constexpr inline std::string logName = "error";
+	static constexpr inline auto logName = "error";
 };
 
 int main(int argc, char *argv[])

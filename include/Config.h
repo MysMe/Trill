@@ -15,6 +15,12 @@ namespace config
 		int refreshSeconds = 60;
 		std::string boardName;
 		std::vector<std::string> listFilter;
+		struct showUserRule
+		{
+			std::string listName;
+			std::string userName;
+		};
+		std::vector<showUserRule> showUserRules;
 
 		static config load()
 		{
@@ -55,6 +61,15 @@ namespace config
 					{
 						throw std::runtime_error("Invalid value for refreshSeconds in config file: " + fileName);
 					}
+				}
+				else if (key == "showUser")
+				{
+					auto delimiter = value.find(':');
+					if (delimiter == std::string::npos || delimiter == 0 || delimiter == value.size() - 1)
+					{
+						throw std::runtime_error("Invalid format for showUser in config file: " + fileName);
+					}
+					config.showUserRules.push_back({ value.substr(0, delimiter), value.substr(delimiter + 1) });
 				}
 				else if (key == "log")
 					logTypes.push_back(value);

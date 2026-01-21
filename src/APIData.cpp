@@ -8,7 +8,7 @@
 
 struct apiLoggingSettings
 {
-	static constexpr inline std::string logName = "api";
+	static constexpr inline auto logName = "api";
 };
 
 
